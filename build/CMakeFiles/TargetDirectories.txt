@@ -1,0 +1,8 @@
+/home/bogdan26bogdan14/BeagleCar/build/CMakeFiles/edit_cache.dir
+/home/bogdan26bogdan14/BeagleCar/build/CMakeFiles/rebuild_cache.dir
+/home/bogdan26bogdan14/BeagleCar/build/webServer/CMakeFiles/webServer.dir
+/home/bogdan26bogdan14/BeagleCar/build/webServer/CMakeFiles/edit_cache.dir
+/home/bogdan26bogdan14/BeagleCar/build/webServer/CMakeFiles/rebuild_cache.dir
+/home/bogdan26bogdan14/BeagleCar/build/testing/CMakeFiles/webServerTest.dir
+/home/bogdan26bogdan14/BeagleCar/build/testing/CMakeFiles/edit_cache.dir
+/home/bogdan26bogdan14/BeagleCar/build/testing/CMakeFiles/rebuild_cache.dir
