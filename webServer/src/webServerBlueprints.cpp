@@ -7,4 +7,16 @@ void add_routes(crow::SimpleApp& app){
     CROW_ROUTE(app, "/")([](){
         return "Hello world";
     });
+
+
+    //Return a template
+    CROW_ROUTE(app, "/template/<int>")([](int count){
+        auto page = crow::mustache::compile("The value is {{value}}");
+        crow::mustache::context ctx;
+        ctx["value"] = count;
+
+        return page.render(ctx);
+    });
+
+
 }
