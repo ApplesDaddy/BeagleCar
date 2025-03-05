@@ -20,6 +20,9 @@ add_compile_options(-fdiagnostics-color)
 add_compile_options(-pthread)
 add_link_options(-pthread)
 
+
+
 # What folders to build
+add_subdirectory(header_files)
 add_subdirectory(webServer)
 add_subdirectory(testing)
