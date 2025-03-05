@@ -46,7 +46,7 @@ void add_routes(crow::SimpleApp& app){
             CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
             CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
             })
-    .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary)){
+    .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary){
                 if (is_binary){
                     CROW_LOG_INFO << "received binary message: " << data;
                     conn.send_binary(data);
@@ -54,7 +54,7 @@ void add_routes(crow::SimpleApp& app){
                     CROW_LOG_INFO << "received message: " << data;
                     conn.send_text(data);
                 }
-            };
+            });
 
 
 }
