@@ -1,2 +1,0 @@
-/usr/bin/ar qc libwebServer.a CMakeFiles/webServer.dir/src/webServerBlueprints.cpp.o
-/usr/bin/ranlib libwebServer.a
