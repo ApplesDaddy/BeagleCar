@@ -8,7 +8,10 @@ project(Beagle_Car
 
 # Compiler options (inherited by sub-folders)
 set(CMAKE_C_STANDARD 11)
-add_compile_options(-Wall -Werror -Wpedantic -Wextra)
+add_compile_options(-Wall -Wpedantic -Wextra)
+#add_compile_options(-Werror) 
+#crow_all.h gives a error due to a condition 
+#always being met so turning this off for the moment
 add_compile_options(-fdiagnostics-color)
 
 # Enable address sanitizer
