@@ -1,0 +1,3 @@
+add_executable(webServerTest src/webServerTest.cpp)
+target_link_libraries(webServerTest LINK_PRIVATE webServer)
+target_link_libraries(webServerTest PRIVATE crow)
