@@ -33,7 +33,7 @@ void add_routes(crow::SimpleApp& app){
     CROW_ROUTE(app, "/load_file")([](){
         auto page = crow::mustache::load_text("template_page.html");
         
-        return page.render();
+        return page;
     });
 
     //TODO: Websocket example
