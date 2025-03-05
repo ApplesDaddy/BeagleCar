@@ -36,7 +36,25 @@ void add_routes(crow::SimpleApp& app){
         return page;
     });
 
-    //TODO: Websocket example
+    // From: https://crowcpp.org/master/guides/websockets/
+    CROW_WEBSOCKET_ROUTE(app, "/ws")
+    .onopen([&](crow::websocket::connection& conn){
+            CROW_LOG_INFO << "new websocket connection";
+            CROW_LOG_INFO << "ip address of new remote connection: " <<  conn.get_remote_ip();
+            })
+    .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t){
+            CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
+            CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
+            })
+    .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary)){
+                if (is_binary){
+                    CROW_LOG_INFO << "received binary message: " << data;
+                    conn.send_binary(data);
+                } else {
+                    CROW_LOG_INFO << "received message: " << data;
+                    conn.send_text(data);
+                }
+            };
 
 
 }
