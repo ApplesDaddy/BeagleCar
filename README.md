@@ -10,6 +10,25 @@ Term project for CMPT433
     (host)$ sudo apt install g++-aarch64-linux-gnu
     ```
 
+
+- udpStreamer
+    - Install ffmpeg on BeagleY-AI
+    ```bash
+    (target)$ sudo apt update
+    (target)$ sudo apt-get install ffmpeg
+    ```
+    Troubleshooting:
+    - If the update command fails, it can prevent installation of necessary dependencies. 
+    To fix this, ensure the system time is correct
+    ```bash
+    # Check system time
+    (target) $ date
+    # Correct system time
+    (target) $ sudo date -s 'YYYY-MM-DD HH:MM:SS'
+    # Check the corrected time
+    (target) $ date
+    ```
+
 ### Web Server
 - The templates and static directories need to be in the location where the executable is being ran. 
 TODO: Make it be overwritten with cmake commands
