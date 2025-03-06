@@ -12,5 +12,5 @@ Term project for CMPT433
 
 ### Web Server
 - The templates and static directories need to be in the location where the executable is being ran. 
-TODO: Make it be overwritten with cmake commands
+
 
