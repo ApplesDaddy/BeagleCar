@@ -1,14 +1,19 @@
-//https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
+// https://developer.mozilla.org/en-US/docs/Web/API/SourceBuffer
+
 
 $(document).ready(function () {
-    var ws = new WebSocket("ws://192.168.7.2:8080/ws");
-    ws.onopen = function () {
-        console.log("Socket has been opened!");
-        ws.send("Hello, server!");
-    };
-    ws.onmessage = function (message) {
-        console.log("New message: " + message.data);
-        $("p").text("The value is " + message.data);
-    };
+    const video = document.getElementById('video');
+    const mediaSource = new MediaSource();
+    video.src = URL.createObjectURL(mediaSource);
+  
+    mediaSource.addEventListener('sourceopen', () => {
+      const ws = new WebSocket('ws://192.168.7.2:8080/ws_video');
+      const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001F"');
+  
+      ws.binaryType = 'arraybuffer';
+      ws.onmessage = (event) => {
+        sourceBuffer.appendBuffer(event.data); // Append received MP4 fragments
+      };
+    });
 });
 

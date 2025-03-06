@@ -1,5 +1,6 @@
 #include "crow_all.h"
 #include "webServer/webServerBlueprints.h"
+#include <stdlib.h>
 
 // Example from: https://crowcpp.org/master/getting_started/your_first_application/
 void add_routes(crow::SimpleApp& app){
@@ -58,5 +59,45 @@ void add_routes(crow::SimpleApp& app){
                 }
             });
 
+    CROW_WEBSOCKET_ROUTE(app, "/ws_video")
+    .onopen([&](crow::websocket::connection& conn){
+            CROW_LOG_INFO << "new websocket connection";
+            CROW_LOG_INFO << "ip address of new remote connection: " <<  conn.get_remote_ip();
 
+
+            // Start a thread to send the video data 
+            std::thread t(send_video_websocket_sample, std::ref(conn));
+            t.detach();
+
+            })
+    .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t){
+            CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
+            CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
+            })
+
+}
+
+void send_video_websocket_sample(crow::websocket::connection& conn){
+    for (int i = 0; i < 16; i++){
+        char file_name[100];
+        sprintf(file_name, "video/output%03d.mp4", i);
+
+        FILE* file = fopen(file_name, "rb");
+        if (file == NULL){
+            CROW_LOG_INFO << "Could not open file: " << file_name;
+            return;
+        }
+
+        char data[400 * 1024]; // 400 KB - since the largest 2 seocond file seems to be about 300 KB
+        size_t read_size = fread(data, 1, sizeof(data), file);
+        if (read_size == 0){
+            CROW_LOG_INFO << "Could not read file: " << file_name;
+            return;
+        }
+
+        conn.send_binary(std::string(data, read_size));
+        fclose(file);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 }
