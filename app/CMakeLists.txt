@@ -1,7 +1,7 @@
 # Build the app, using the HAL
 
 include_directories(include)
-file(GLOB MY_SOURCES "src/*.c")
+file(GLOB MY_SOURCES "src/*.cpp")
 add_executable(beagle_car ${MY_SOURCES})
 
 # Make use of the libraries
