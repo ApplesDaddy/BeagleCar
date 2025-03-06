@@ -10,10 +10,10 @@ target_link_libraries(webServer PRIVATE crow)
 add_custom_command(TARGET webServer POST_BUILD 
   COMMAND "${CMAKE_COMMAND}" -E copy_directory 
      "${CMAKE_CURRENT_SOURCE_DIR}/src/static"
-     "~/cmpt433/public/myApps/static" 
+     "~/cmpt433/public/static" 
   COMMENT "Copying static directory to public folder")
   add_custom_command(TARGET webServer POST_BUILD 
   COMMAND "${CMAKE_COMMAND}" -E copy_directory 
      "${CMAKE_CURRENT_SOURCE_DIR}/src/templates"
-     "~/cmpt433/public/myApps/templates" 
+     "~/cmpt433/public/templates" 
   COMMENT "Copying templates directory to public folder")
