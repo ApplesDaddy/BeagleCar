@@ -37,6 +37,8 @@ void add_routes(crow::SimpleApp& app){
     });
 
     // From: https://crowcpp.org/master/guides/websockets/
+    // Only prints out to the console for now. To get a 
+    // connection go to /static/websocket_page.html
     CROW_WEBSOCKET_ROUTE(app, "/ws")
     .onopen([&](crow::websocket::connection& conn){
             CROW_LOG_INFO << "new websocket connection";
