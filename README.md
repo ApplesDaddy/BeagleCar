@@ -12,7 +12,10 @@ Term project for CMPT433
 - lcd/video streaming
     ```sh
         (host)$ sudo apt-get install ffmpeg:arm64
+        (host) sudo apt-get install libavcodec:arm64
+        (host) sudo apt-get install libavformat:arm64
         (target)$ sudo apt-get install ffmpeg
+        (target)$ sudo apt install liblgpio-dev
     ```
 
 ### Web Server
@@ -53,8 +56,6 @@ To manually run CMake from the command line use:
      ```
      (If you are also enabling PWM, make the `fdtoverlays` line be a space-separated list of .dtbo files.)
   c. Reboot.
-* Install the lgpio library on the target
-  `(byai)$ sudo apt install liblgpio-dev`
 * At each boot you'll need to either:
   a. Change the SPI to be usable by anyone:
      `sudo chmod a+rw /dev/spidev0.*`

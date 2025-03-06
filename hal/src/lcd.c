@@ -43,6 +43,9 @@ void lcd_init()
         perror("Failed to apply for black memory");
         exit(0);
     }
+
+    // avcodec_register_all();
+
     isInitialized = true;
 }
 // source: cmake_lcdstarter from prof Brian Fraser
@@ -112,7 +115,9 @@ void lcd_show_frame(AVFrame * frame)
             printf("%d,%d -> %d%d%d\n", col, row, r, g, b);
 
             short data = RGB(r, g, b);
-            Paint_SetPixel(col, frame.height - row - 1, data);
+            Paint_SetPixel(col, frame->height - row - 1, data);
         }
 	}
+    LCD_1IN54_Display(s_fb);
+    DEV_Delay_ms(50);
 }

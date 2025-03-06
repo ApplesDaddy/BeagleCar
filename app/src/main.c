@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 
 #include "hal/lcd.h"
 
@@ -73,6 +74,28 @@ int main()
         fprintf(stderr, "Could not allocate video codec context\n");
         exit(1);
     }
+
+    // get frame rate
+    AVFormatContext * format = NULL;
+    if ( avformat_open_input( & format, filename, NULL, NULL ) != 0 )
+    {
+        fprintf(stderr, "Could not get format context\n");
+        exit(1);
+    }
+    if ( avformat_find_stream_info( format, NULL ) < 0)
+    {
+        fprintf(stderr, "Could not get stream info\n");
+        exit(1);
+    }
+    AVCodec * video_dec = (AVCodec*)1;
+    int video_stream_index = av_find_best_stream( format, AVMEDIA_TYPE_VIDEO, -1, -1, & video_dec, 0 );
+    if ( video_stream_index < 0 )
+    {
+        fprintf(stderr, "Could not get stream index\n");
+        exit(1);
+    }
+    AVStream* videoStream = format->streams[ video_stream_index ];
+    double FPS = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
 
     /* For some codecs, such as msmpeg4 and mpeg4, width and height
        MUST be initialized there because this information is not
