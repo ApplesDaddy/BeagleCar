@@ -73,7 +73,7 @@ void add_routes(crow::SimpleApp& app){
     .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t){
             CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
             CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
-            })
+            });
 
 }
 
@@ -81,6 +81,8 @@ void send_video_websocket_sample(crow::websocket::connection& conn){
     for (int i = 0; i < 16; i++){
         char file_name[100];
         sprintf(file_name, "video/output%03d.mp4", i);
+
+        CROW_LOG_INFO << "Sending: " << file_name;
 
         FILE* file = fopen(file_name, "rb");
         if (file == NULL){
