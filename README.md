@@ -9,8 +9,17 @@ Term project for CMPT433
     (host)$ sudo apt install g++ 
     (host)$ sudo apt install g++-aarch64-linux-gnu
     ```
+    - ffmpeg for video segmenting
+    ```bash
+    (host)$ sudo apt install ffmpeg
+    (byai)$ sudo apt install ffmpeg
+    ```
 
 ### Web Server
 - The templates and static directories need to be in the location where the executable is being ran. 
+- ffmpeg command to reincode a video and keyframes every 50 frames so it can be segmented to 2 second chunks.... kindly provided by chatgpt - untested since i ran the windows executable version. Sample video from: https://www.sample-videos.com/
+```bash 
+$ ffmpeg -i input.mp4 -c:v libx264 -g 50 -keyint_min 50 -sc_threshold 0 -f segment -segment_time 2 output%03d.mp4
+```
 
 
