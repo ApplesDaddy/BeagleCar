@@ -14,6 +14,7 @@ Term project for CMPT433
         (host)$ sudo apt-get install ffmpeg:arm64
         (target)$ sudo apt-get install ffmpeg
     ```
+
 ### Web Server
 - The templates and static directories need to be in the location where the executable is being ran.
 TODO: Make it be overwritten with cmake commands

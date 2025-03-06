@@ -15,6 +15,8 @@
 static UWORD *s_fb;
 static bool isInitialized = false;
 
+
+// source: cmake_lcdstarter from prof Brian Fraser
 void lcd_init()
 {
     assert(!isInitialized);
@@ -23,7 +25,8 @@ void lcd_init()
     // signal(SIGINT, Handler_1IN54_LCD);
 
     // Module Init
-	if(DEV_ModuleInit() != 0){
+	if(DEV_ModuleInit() != 0)
+    {
         DEV_ModuleExit();
         exit(0);
     }
@@ -35,12 +38,14 @@ void lcd_init()
 	LCD_SetBacklight(1023);
 
     UDOUBLE Imagesize = LCD_1IN54_HEIGHT*LCD_1IN54_WIDTH*2;
-    if((s_fb = (UWORD *)malloc(Imagesize)) == NULL) {
+    if((s_fb = (UWORD *)malloc(Imagesize)) == NULL)
+    {
         perror("Failed to apply for black memory");
         exit(0);
     }
     isInitialized = true;
 }
+// source: cmake_lcdstarter from prof Brian Fraser
 void lcd_cleanup()
 {
     assert(isInitialized);
@@ -52,6 +57,7 @@ void lcd_cleanup()
     isInitialized = false;
 }
 
+// source: cmake_lcdstarter from prof Brian Fraser
 void lcd_show_bmp(char* filename)
 {
     Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
@@ -62,7 +68,8 @@ void lcd_show_bmp(char* filename)
     DEV_Delay_ms(2000);
 }
 
-void lcd_update_screen(char* message)
+// source: cmake_lcdstarter from prof Brian Fraser
+void lcd_show_message(char* message)
 {
     assert(isInitialized);
 
@@ -78,16 +85,15 @@ void lcd_update_screen(char* message)
     Paint_DrawString_EN(x, y, message, &Font16, WHITE, BLACK);
 
     // Send the RAM frame buffer to the LCD (actually display it)
-    // Option 1) Full screen refresh (~1 update / second)
-    // LCD_1IN54_Display(s_fb);
     // Option 2) Update just a small window (~15 updates / second)
     //           Assume font height <= 20
     LCD_1IN54_DisplayWindows(x, y, LCD_1IN54_WIDTH, y+20, s_fb);
 }
 
-
 void lcd_show_frame(AVFrame * frame)
 {
+    assert(isInitialized);
+
 	for(int row = 0; row < frame->height; row++)
 	{
 		for(int col = 0; col < frame->width; col++)
@@ -104,8 +110,9 @@ void lcd_show_frame(AVFrame * frame)
             const unsigned char b = y + 1.772*(u-128);
 
             printf("%d,%d -> %d%d%d\n", col, row, r, g, b);
+
+            short data = RGB(r, g, b);
+            Paint_SetPixel(col, frame.height - row - 1, data);
         }
 	}
-
-    return 0;
 }

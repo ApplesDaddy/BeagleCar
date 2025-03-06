@@ -11,7 +11,6 @@ target_include_directories(hal PUBLIC include)
 target_link_libraries(hal LINK_PRIVATE lcd)
 
 
-
 # (host) sudo apt-get install ffmpeg:arm64
 # (target) sudo apt-get install ffmpeg
 find_library(AVCODEC_LIBRARY avcodec)

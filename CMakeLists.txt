@@ -8,8 +8,12 @@ project(Beagle_Car
 
 # Compiler options (inherited by sub-folders)
 set(CMAKE_C_STANDARD 11)
+
+# set cross compiler + architecture
 set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-set(CMAKE_LIBRARY_ARCHITECTURE aarch64-linux-gnu) # so ld uses the correct version
+set(CMAKE_LIBRARY_ARCHITECTURE aarch64-linux-gnu) # so ld uses the correct version of 3rd party libraries
+
+
 add_compile_options(-Wall -Wpedantic -Wextra -g)
 # add_compile_options(-Werror)
 #crow_all.h gives a error due to a condition
@@ -25,9 +29,6 @@ add_compile_options(-fdiagnostics-color)
 add_compile_options(-pthread)
 add_link_options(-pthread)
 
-
-find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
-find_library(AVCODEC_LIBRARY avcodec)
 
 # What folders to build
 add_subdirectory(header_files)
