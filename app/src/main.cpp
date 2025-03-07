@@ -5,6 +5,7 @@
 #include <stdbool.h>
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavutil/avutil.h"
 #include "libavformat/avformat.h"
 
 #include "hal/lcd.h"
@@ -17,17 +18,11 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
 {
     if (pkt->stream_index != stream_idx){ return; }
     int ret = avcodec_send_packet(dec_ctx, pkt);
-    // int got_pic_ptr;
-    // int ret = avcodec_decode_video2(dec_ctx, frame, &got_pic_ptr, pkt);
     if (ret < 0)
     {
         fprintf(stderr, "Error sending a packet for decoding %d\n", ret);
-        // exit(1);
         return;
     }
-    // P frame or incomplete frame
-    // if(got_pic_ptr < 0)
-    // { return; }
 
     while (ret >= 0)
     {
@@ -40,6 +35,7 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
             fprintf(stderr, "Error during decoding\n");
             exit(1);
         }
+        lcd_show_frame(frame);
     }
 }
 
@@ -53,9 +49,6 @@ int main()
 
     // open file
     char* filename = "pic.mp4";
-    AVPacket *pkt = av_packet_alloc();
-    if (!pkt)
-    { exit(1); }
 
     /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
     uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
@@ -70,6 +63,7 @@ int main()
     }
 
     AVCodecParserContext *parser = av_parser_init(codec->id);
+    parser->flags = PARSER_FLAG_COMPLETE_FRAMES;
     if (!parser)
     {
         fprintf(stderr, "parser not found\n");
@@ -82,6 +76,7 @@ int main()
         fprintf(stderr, "Could not allocate video codec context\n");
         exit(1);
     }
+    av_opt_set(c->priv_data, "tune", "zerolatency", 0);
 
     // get frame rate
     AVFormatContext * format = NULL;
@@ -109,10 +104,6 @@ int main()
     /* For some codecs, such as msmpeg4 and mpeg4, width and height
        MUST be initialized there because this information is not
        available in the bitstream. */
-    // c->height = codecpar->height;
-    // c->width = codecpar->width;
-    // c->pix_fmt = AV_PIX_FMT_YUV420P;
-    // c->framerate = format->streams[video_stream_index]->r_frame_rate;
     avcodec_parameters_to_context(c, codecpar);
 
     /* open it */
@@ -122,12 +113,9 @@ int main()
         exit(1);
     }
 
-    FILE *f = fopen(filename, "rb");
-    if (!f)
-    {
-        fprintf(stderr, "Could not open %s\n", filename);
-        exit(1);
-    }
+    AVPacket *pkt = av_packet_alloc();
+    av_init_packet(pkt);
+    if (!pkt) { exit(1); }
 
     AVFrame *frame = av_frame_alloc();
     if (!frame)
@@ -136,37 +124,17 @@ int main()
         exit(1);
     }
 
-    while (!feof(f))
+    while (av_read_frame(format, pkt) >= 0)
     {
-        /* read raw data from the input file */
-        size_t data_size = fread(inbuf, 1, INBUF_SIZE, f);
-        if (!data_size)
-        { break; }
-
-        /* use the parser to split the data into frames */
-        uint8_t *data = inbuf;
-        while (data_size > 0)
-        {
-            int ret = av_parser_parse2(parser, c, &pkt->data, &pkt->size, data, data_size,
-                                        AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-            if (ret < 0)
-            {
-                fprintf(stderr, "Error while parsing\n");
-                exit(1);
-            }
-            data += ret;
-            data_size -= ret;
-
-            // parse into AVFrame
-            decode(c, frame, pkt, video_stream_index);
-            lcd_show_frame(frame);
-        }
+        frame->width = c->width;
+        frame->height = c->height;
+        decode(c, frame, pkt, video_stream_index);
+        av_packet_unref(pkt);
     }
 
     /* flush the decoder */
     decode(c, frame, NULL, video_stream_index);
 
-    fclose(f);
 
     av_parser_close(parser);
     avcodec_free_context(&c);

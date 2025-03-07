@@ -46,6 +46,7 @@ void lcd_init()
 
     // avcodec_register_all();
 
+    Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
     isInitialized = true;
 }
 // source: cmake_lcdstarter from prof Brian Fraser
@@ -95,11 +96,16 @@ void lcd_show_message(char* message)
 
 void lcd_show_frame(AVFrame * frame)
 {
+    Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
+    Paint_Clear(WHITE);
+
     assert(isInitialized);
 
-	for(int row = 0; row < frame->height; row++)
+    int h = frame->height < LCD_1IN54_HEIGHT? frame->height : LCD_1IN54_HEIGHT;
+    int w = frame->width < LCD_1IN54_WIDTH? frame->width : LCD_1IN54_WIDTH;
+	for(int row = 0; row < h; row++)
 	{
-		for(int col = 0; col < frame->width; col++)
+		for(int col = 0; col < w; col++)
 		{
             // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
             // get yuv value at pixel
@@ -112,12 +118,10 @@ void lcd_show_frame(AVFrame * frame)
             const unsigned char g = y - 0.344*(u-128) - 0.714 * (v-128);
             const unsigned char b = y + 1.772*(u-128);
 
-            printf("%d,%d -> %d%d%d\n", col, row, r, g, b);
-
-            short data = RGB(r, g, b);
-            Paint_SetPixel(col, frame->height - row - 1, data);
+            int data=RGB((r), (g), (b));
+            Paint_SetPixel(col, h - row, data);
         }
 	}
+    // printf("push\n");
     LCD_1IN54_Display(s_fb);
-    DEV_Delay_ms(50);
 }
