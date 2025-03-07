@@ -13,12 +13,33 @@ video.src = URL.createObjectURL(mediaSource);
 mediaSource.addEventListener('sourceopen', () => {
   const ws = new WebSocket('ws://localhost:8080/ws_video');
   const sourceBuffer = mediaSource.addSourceBuffer('video/mp4');
+  let bufferQueue = []; // Queue for incoming video data
+  let isAppending = false; // Track appending state
 
   ws.binaryType = 'arraybuffer';
+
   ws.onmessage = (event) => {
-    console.log("Received a file. Object to follow:")
-    console.log(event)
-    sourceBuffer.appendBuffer(event.data); // Append received MP4 fragments
+    console.log("Received a file. Object to follow:");
+    console.log(event);
+
+    bufferQueue.push(event.data); // Store data in queue
+    appendNextBuffer(); // Attempt to append data
   };
+
+  function appendNextBuffer() {
+    if (!isAppending && bufferQueue.length > 0 && !sourceBuffer.updating) {
+      isAppending = true; // Mark appending state
+      sourceBuffer.appendBuffer(bufferQueue.shift()); // Append next chunk
+    }
+  }
+
+  sourceBuffer.addEventListener('updateend', () => {
+    isAppending = false; // Reset flag
+    appendNextBuffer(); // Try appending next chunk if available
+  });
+
+  sourceBuffer.addEventListener('error', (e) => {
+    console.error("SourceBuffer error:", e);
+  });
 });
 
