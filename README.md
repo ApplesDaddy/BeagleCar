@@ -46,7 +46,7 @@ Logitech C270 720p webcam
     4.5) if 4 doesn't work ('pipe:0: Invalid data found when processing input'),
     first check where usb webcam shows up:
 
-  
+
      ```bash
     (target) v4l2-ctl --list-devices
     ```
@@ -56,7 +56,7 @@ Logitech C270 720p webcam
    ```bash
    (target) $ ./capture_exec -F -o -c0 -d /dev/video_ | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
    ```
-   
+
     5) Open VLC, click ‘Media – Open Network Stream’, set the network URL
     ‘udp://@:1234’, and click the play button. Then, the VLC will show the video
     stream.
@@ -65,6 +65,8 @@ Logitech C270 720p webcam
     ```sh
         (host) sudo apt-get install libavcodec-dev
         (host) sudo apt-get install libavformat-dev
+        (host) sudo apt-get install libswscale-dev
+        (host) sudo apt-get install libavutil-dev
 
         (target)$ sudo apt-get install ffmpeg
         (target)$ sudo apt install liblgpio-dev
