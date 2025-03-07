@@ -90,7 +90,7 @@ void send_video_websocket_sample(crow::websocket::connection& conn){
             return;
         }
 
-        char data[400 * 1024]; // 400 KB - since the largest 2 seocond file seems to be about 300 KB
+        char data[600 * 1024]; // 400 KB - since the largest 2 seocond file seems to be about 300 KB
         size_t read_size = fread(data, 1, sizeof(data), file);
         if (read_size == 0){
             CROW_LOG_INFO << "Could not read file: " << file_name;
@@ -100,6 +100,7 @@ void send_video_websocket_sample(crow::websocket::connection& conn){
         conn.send_binary(std::string(data, read_size));
         fclose(file);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2100));
     }
+    conn.close();
 }

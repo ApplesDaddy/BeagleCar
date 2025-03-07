@@ -13,9 +13,11 @@ var event_item;
 // never ending loading
 // source: https://stackoverflow.com/questions/79182435/video-using-mediasource-api-showing-unending-loading-screen
 
+//This site checks if the video is properly fragmented: https://nickdesaulniers.github.io/mp4info/
+
 mediaSource.addEventListener('sourceopen', () => {
   const ws = new WebSocket('ws://localhost:8080/ws_video');
-  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4');
+  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.64001e, mp4a.40.2"');
   let bufferQueue = []; // Queue for incoming video data
   let isAppending = false; // Track appending state
 
