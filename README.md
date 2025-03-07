@@ -53,13 +53,15 @@ $ cd build/testing/
 $ ./webserverTest
 ```
 From there you can go to the following addresses: 
-0.0.0.0:8080
-0.0.0.0:8080/template/<some integer value>
-0.0.0.0:8080/template_file/<some integer value>
-0.0.0.0:8080/load_file
-0.0.0.0:8080/static/websocket_page.html 
-0.0.0.0:8080/static/websocket_video.html
-For the websocket examples you should see the websocket messages both in the terminal log and in the console log on the webpage.
+- 0.0.0.0:8080
+- 0.0.0.0:8080/template/<some integer value>
+- 0.0.0.0:8080/template_file/<some integer value>
+- 0.0.0.0:8080/load_file
+- 0.0.0.0:8080/static/websocket_page.html 
+- 0.0.0.0:8080/static/websocket_video.html
+*For the websocket examples you should see the websocket messages both in the terminal log and in the console log on the webpage.
+
+
 
 - The templates and static directories need to be in the location where the executable is being ran. 
 - Websocket streaming only verified to work on chrome
