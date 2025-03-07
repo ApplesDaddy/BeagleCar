@@ -22,11 +22,21 @@ Term project for CMPT433
     To fix this, ensure the system time is correct
     ```bash
     # Check system time
-    (target) $ date
+    (target)$ date
     # Correct system time
-    (target) $ sudo date -s 'YYYY-MM-DD HH:MM:SS'
+    (target)$ sudo date -s 'YYYY-MM-DD HH:MM:SS'
     # Check the corrected time
-    (target) $ date
+    (target)$ date
+    ```
+    - Install ffmpeg development libraries on host and target
+    ```bash
+    (host)$ sudo apt-get install libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev
+    (target)$ sudo apt-get install libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev
+    ```
+    - Install pkg-config on host and target (required for CMake to configure libraries during build)
+    ```bash
+    (host)$ sudo apt-get install pkg-config
+    (target)$ sudo apt-get install pkg-config
     ```
 
 ### Web Server
