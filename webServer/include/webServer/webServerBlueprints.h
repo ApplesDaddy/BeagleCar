@@ -3,5 +3,6 @@
 #include "crow_all.h"
 
 void add_routes(crow::SimpleApp& app);
+void send_video_websocket_sample(crow::websocket::connection& conn);;
 
 #endif
