@@ -1,6 +1,13 @@
 # BeagleCar
 Term project for CMPT433
 
+Equipment:
+
+BeagleBone Y-AI
+Logitech C270 720p webcam
+
+
+
 
 ### Dependencies
 - webServer
