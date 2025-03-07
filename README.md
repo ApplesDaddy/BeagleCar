@@ -42,6 +42,21 @@ Logitech C270 720p webcam
      ```bash
     (target) $ ./capture_exec -F -o -c0 | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
     ```
+
+    4.5) if 4 doesn't work ('pipe:0: Invalid data found when processing input'),
+    first check where usb webcam shows up:
+
+  
+     ```bash
+    (target) v4l2-ctl --list-devices
+    ```
+
+   then replace (/dev/video/_) with where the webcam is recognized (ex. video1/video2/video3)
+
+   ```bash
+   (target) $ ./capture_exec -F -o -c0 -d /dev/video_ | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
+   ```
+   
     5) Open VLC, click ‘Media – Open Network Stream’, set the network URL
     ‘udp://@:1234’, and click the play button. Then, the VLC will show the video
     stream.
