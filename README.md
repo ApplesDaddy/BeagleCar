@@ -59,6 +59,7 @@ From there you can go to the following addresses:
 - 0.0.0.0:8080/load_file
 - 0.0.0.0:8080/static/websocket_page.html 
 - 0.0.0.0:8080/static/websocket_video.html
+
 *For the websocket examples you should see the websocket messages both in the terminal log and in the console log on the webpage.
 
 
