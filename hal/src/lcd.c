@@ -109,19 +109,18 @@ void lcd_show_frame(AVFrame * frame)
 		{
             // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
             // get yuv value at pixel
-            const unsigned char y = frame->data[0][frame->linesize[0] * row + col];
-            const unsigned char u = frame->data[1][frame->linesize[1] * row/2 + col/2];
-            const unsigned char v = frame->data[2][frame->linesize[2] * row/2 + col/2];
+            unsigned char y = frame->data[0][frame->linesize[0] * row + col];
+            unsigned char u = frame->data[1][(int)(frame->linesize[1] * (row/2.0) + (col/2.0))];
+            unsigned char v = frame->data[2][(int)(frame->linesize[2] * (row/2.0) + (col/2.0))];
 
             // convert to rgb
-            const unsigned char r = y + 1.402*(v-128);
-            const unsigned char g = y - 0.344*(u-128) - 0.714 * (v-128);
-            const unsigned char b = y + 1.772*(u-128);
+            const unsigned char r = y + 1.402 * (v-128);
+            const unsigned char g = y - 0.344 * (u-128) - 0.714 * (v-128);
+            const unsigned char b = y + 1.772 * (u-128);
 
             int data=RGB((r), (g), (b));
-            Paint_SetPixel(col, h - row, data);
+            Paint_SetPixel(col, row, data);
         }
 	}
-    // printf("push\n");
     LCD_1IN54_Display(s_fb);
 }

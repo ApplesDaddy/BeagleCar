@@ -3,20 +3,26 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavutil/avutil.h"
-#include "libavformat/avformat.h"
+extern "C"
+{
+    #include "libavcodec/avcodec.h"
+    #include "libavutil/avutil.h"
+    #include "libavformat/avformat.h"
 
-#include "hal/lcd.h"
+    #include "hal/lcd.h"
 }
 #define INBUF_SIZE 4096
+
+
+int fps = 30;
+int count = 0;
 
 
 // source: https://ffmpeg.org/doxygen/4.2/decode_video_8c-example.html
 static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx)
 {
-    if (pkt->stream_index != stream_idx){ return; }
+    if (!pkt || pkt->stream_index != stream_idx){ return; }
+
     int ret = avcodec_send_packet(dec_ctx, pkt);
     if (ret < 0)
     {
@@ -35,7 +41,11 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
             fprintf(stderr, "Error during decoding\n");
             exit(1);
         }
-        lcd_show_frame(frame);
+
+        // limit to 1 fps (hardware limitation)
+        if(count % fps == 0)
+        { lcd_show_frame(frame); }
+        count++;
     }
 }
 
@@ -76,9 +86,8 @@ int main()
         fprintf(stderr, "Could not allocate video codec context\n");
         exit(1);
     }
-    av_opt_set(c->priv_data, "tune", "zerolatency", 0);
 
-    // get frame rate
+    // get frame rate to limit writing to lcd
     AVFormatContext * format = NULL;
     if ( avformat_open_input( & format, filename, NULL, NULL ) != 0 )
     {
@@ -90,7 +99,7 @@ int main()
         fprintf(stderr, "Could not get stream info\n");
         exit(1);
     }
-    const AVCodec * video_dec = (AVCodec*)1;
+    // get index of video stream (since mp4 has audio and video streams)
     int video_stream_index = av_find_best_stream( format, AVMEDIA_TYPE_VIDEO, -1, -1, & codec, 0 );
     if ( video_stream_index < 0 )
     {
@@ -99,12 +108,18 @@ int main()
     }
     AVStream* videoStream = format->streams[ video_stream_index ];
     AVCodecParameters *codecpar = videoStream->codecpar;
-    double FPS = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
+    fps = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
 
     /* For some codecs, such as msmpeg4 and mpeg4, width and height
        MUST be initialized there because this information is not
        available in the bitstream. */
     avcodec_parameters_to_context(c, codecpar);
+    c->flags |= AV_CODEC_FLAG_LOW_DELAY;
+    c->flags2 |= AV_CODEC_FLAG2_FAST;
+
+    // TODO: look into include error
+    // av_opt_set(codecpar->priv_data, "preset", "ultrafast", 0);
+    // av_opt_set(codecpar->priv_data, "tune", "zerolatency", 0);
 
     /* open it */
     if (avcodec_open2(c, codec, NULL) < 0)
@@ -114,7 +129,6 @@ int main()
     }
 
     AVPacket *pkt = av_packet_alloc();
-    av_init_packet(pkt);
     if (!pkt) { exit(1); }
 
     AVFrame *frame = av_frame_alloc();
@@ -123,11 +137,12 @@ int main()
         fprintf(stderr, "Could not allocate video frame\n");
         exit(1);
     }
+    frame->width = c->width;
+    frame->height = c->height;
 
+    // process file
     while (av_read_frame(format, pkt) >= 0)
     {
-        frame->width = c->width;
-        frame->height = c->height;
         decode(c, frame, pkt, video_stream_index);
         av_packet_unref(pkt);
     }
@@ -136,6 +151,7 @@ int main()
     decode(c, frame, NULL, video_stream_index);
 
 
+    // cleanup
     av_parser_close(parser);
     avcodec_free_context(&c);
     av_frame_free(&frame);
