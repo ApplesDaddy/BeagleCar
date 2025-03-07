@@ -8,6 +8,9 @@ extern "C"
     #include "libavcodec/avcodec.h"
     #include "libavutil/avutil.h"
     #include "libavformat/avformat.h"
+    #include "libswscale/swscale.h"
+    #include "LCD_1in54.h"
+
 
     #include "hal/lcd.h"
 }
@@ -16,10 +19,11 @@ extern "C"
 
 int fps = 30;
 int count = 0;
+struct SwsContext *resize;
 
 
 // source: https://ffmpeg.org/doxygen/4.2/decode_video_8c-example.html
-static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx)
+static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx, AVFrame* frame2)
 {
     if (!pkt || pkt->stream_index != stream_idx){ return; }
 
@@ -44,7 +48,10 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
 
         // limit to 1 fps (hardware limitation)
         if(count % fps == 0)
-        { lcd_show_frame(frame); }
+        {
+            sws_scale(resize, frame->data, frame->linesize, 0, dec_ctx->height, frame2->data, frame2->linesize);
+            lcd_show_frame(frame2);
+        }
         count++;
     }
 }
@@ -134,15 +141,29 @@ void test_video()
     frame->width = c->width;
     frame->height = c->height;
 
+
+    // setup to resize image to fit lcd screen
+    resize = sws_getContext(c->width, c->height, c->pix_fmt, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT,
+                            c->pix_fmt, SWS_SINC, NULL, NULL, NULL);
+
+    // second frame for scaled image
+    AVFrame* frame2 = av_frame_alloc();
+    frame2->width = LCD_1IN54_WIDTH;
+    frame2->height = LCD_1IN54_HEIGHT;
+    frame2->format = c->pix_fmt;
+    int ret = av_frame_get_buffer(frame2, 0);
+    ret = av_frame_make_writable(frame2);
+
+
     // process file
     while (av_read_frame(format, pkt) >= 0)
     {
-        decode(c, frame, pkt, video_stream_index);
+        decode(c, frame, pkt, video_stream_index, frame2);
         av_packet_unref(pkt);
     }
 
     /* flush the decoder */
-    decode(c, frame, NULL, video_stream_index);
+    decode(c, frame, NULL, video_stream_index, frame2);
 
 
     // cleanup
