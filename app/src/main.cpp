@@ -49,14 +49,8 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
     }
 }
 
-int main()
+void test_video()
 {
-    printf("Hello world with LCD!\n");
-
-    // Initialize all modules; HAL modules first
-    lcd_init();
-
-
     // open file
     char* filename = "pic.mp4";
 
@@ -156,6 +150,25 @@ int main()
     avcodec_free_context(&c);
     av_frame_free(&frame);
     av_packet_free(&pkt);
+}
+
+void test_bmp()
+{
+    char* filename = "pic/LCD_1inch54.bmp";
+    lcd_show_bmp(filename);
+}
+
+
+int main()
+{
+    printf("Hello world with LCD!\n");
+
+    // Initialize all modules; HAL modules first
+    lcd_init();
+
+
+    test_video();
+    // test_bmp();
 
 
     // Cleanup all modules (HAL modules last)
