@@ -48,12 +48,13 @@ Logitech C270 720p webcam
 
 - lcd/video streaming
     ```sh
-        (host)$ sudo apt-get install ffmpeg:arm64
-        (host) sudo apt-get install libavcodec:arm64
-        (host) sudo apt-get install libavformat:arm64
+        (host) sudo apt-get install libavcodec-dev
+        (host) sudo apt-get install libavformat-dev
+
         (target)$ sudo apt-get install ffmpeg
         (target)$ sudo apt install liblgpio-dev
     ```
+
 ### Web Server
 - You can run the example server after building by doing the following:
 ```bash

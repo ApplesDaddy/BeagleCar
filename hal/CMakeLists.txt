@@ -11,10 +11,10 @@ target_include_directories(hal PUBLIC include)
 target_link_libraries(hal LINK_PRIVATE lcd)
 
 
-# (host) sudo apt-get install libutil:arm64
-# (host) sudo apt-get install libavcodec:arm64
-# (host) sudo apt-get install libavformat:arm64
-# (target) sudo apt-get install ffmpeg
+# (host) sudo apt-get install libutil-dev
+# (host) sudo apt-get install libavcodec-dev
+# (host) sudo apt-get install libavformat-dev
+# (host) sudo apt-get install ffmpeg
 find_library(AVCODEC_LIBRARY avcodec)
 find_library(AVUTIL_LIBRARY avutil)
 find_library(AVFORMAT_LIBRARY avformat)
