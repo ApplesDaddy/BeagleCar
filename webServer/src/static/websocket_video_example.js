@@ -6,6 +6,9 @@ const video = document.getElementById('video');
 const mediaSource = new MediaSource();
 video.src = URL.createObjectURL(mediaSource);
 
+var event_item;
+
+
 //TODO: add an event listner for updateend to stop the 
 // never ending loading
 // source: https://stackoverflow.com/questions/79182435/video-using-mediasource-api-showing-unending-loading-screen
@@ -21,6 +24,7 @@ mediaSource.addEventListener('sourceopen', () => {
   ws.onmessage = (event) => {
     console.log("Received a file. Object to follow:");
     console.log(event);
+    event_item = event;
 
     bufferQueue.push(event.data); // Store data in queue
     appendNextBuffer(); // Attempt to append data
