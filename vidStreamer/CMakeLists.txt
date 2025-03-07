@@ -9,10 +9,10 @@ pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
     libswscale
 )
 include_directories(${FFMPEG_INCLUDE_DIRS})
-include_directories(udpStreamer/include)
+include_directories(vidStreamer/include)
 file(GLOB MY_SOURCES "src/*.cpp")
 
-add_library(udpStreamer STATIC ${MY_SOURCES})
-target_include_directories(udpStreamer PUBLIC include)
-target_link_libraries(udpStreamer PRIVATE PkgConfig::FFMPEG)
+add_library(vidStreamer STATIC ${MY_SOURCES})
+target_include_directories(vidStreamer PUBLIC include)
+target_link_libraries(vidStreamer PRIVATE PkgConfig::FFMPEG)
 

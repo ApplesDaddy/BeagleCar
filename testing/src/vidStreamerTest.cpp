@@ -1,4 +1,4 @@
-#include "../../udpStreamer/include/udpStreamer/udpStreamer.h"
+#include "../../vidStreamer/include/vidStreamer/vidStreamer.h"
 #include <iostream>
 
 int main(int argc, char* argv[]){

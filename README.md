@@ -11,7 +11,7 @@ Term project for CMPT433
     ```
 
 
-- udpStreamer
+- vidStreamer
     - Install ffmpeg on BeagleY-AI
     ```bash
     (target)$ sudo apt update

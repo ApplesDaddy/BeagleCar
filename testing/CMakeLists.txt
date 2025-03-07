@@ -10,12 +10,12 @@ COMMAND "${CMAKE_COMMAND}" -E copy
 "~/cmpt433/public/webServerTest"
 COMMENT "Copying webServerTest to public folder")
 
-# For the udpStreamer executable
-add_executable(udpStreamerTest src/udpStreamerTest.cpp)
-target_link_libraries(udpStreamerTest LINK_PRIVATE udpStreamer)
+# For the vidStreamer executable
+add_executable(vidStreamerTest src/vidStreamerTest.cpp)
+target_link_libraries(vidStreamerTest LINK_PRIVATE vidStreamer)
 
-add_custom_command(TARGET udpStreamerTest POST_BUILD 
+add_custom_command(TARGET vidStreamerTest POST_BUILD 
 COMMAND "${CMAKE_COMMAND}" -E copy 
-"$<TARGET_FILE:udpStreamerTest>" 
-"~/cmpt433/public/udpStreamerTest"
-COMMENT "Copying udpStreamerTest to public folder")
+"$<TARGET_FILE:vidStreamerTest>" 
+"~/cmpt433/public/vidStreamerTest"
+COMMENT "Copying vidStreamerTest to public folder")
