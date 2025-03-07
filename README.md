@@ -62,16 +62,15 @@ From there you can go to the following addresses:
 
 *For the websocket examples you should see the websocket messages both in the terminal log and in the console log on the webpage.
 
-
-
-- The templates and static directories need to be in the location where the executable is being ran. 
-- Websocket streaming only verified to work on chrome
-- ffmpeg command to reincode a video and keyframes every 50 frames so it can be segmented to 2 second chunks.... kindly provided by chatgpt; Sample video from: https://www.sample-videos.com/
-```bash 
-$ ffmpeg -i input.mp4 -c:v libx264 -g 50 -keyint_min 50 -sc_threshold 0 -f segment -segment_time 2 output%03d.mp4
-```
-- ffmpeg command to fragment each of the outputs; there is a shell script in the video directory to do both of the commands automatically.
-```bash
-$ ffmpeg -i non_fragmented.mp4 -movflags frag_keyframe+empty_moov+default_base_moof fragmented.mp4
-```
+- Other requirments:
+    - The templates and static directories need to be in the location where the executable is being ran. 
+    - Websocket streaming only verified to work on chrome
+    - ffmpeg command to reincode a video and keyframes every 50 frames so it can be segmented to 2 second chunks.... kindly provided by chatgpt; Sample video from: https://www.sample-videos.com/
+    ```bash 
+    $ ffmpeg -i input.mp4 -c:v libx264 -g 50 -keyint_min 50 -sc_threshold 0 -f segment -segment_time 2 output%03d.mp4
+    ```
+    - ffmpeg command to fragment each of the outputs; there is a shell script in the video directory to do both of the commands automatically.
+    ```bash
+    $ ffmpeg -i non_fragmented.mp4 -movflags frag_keyframe+empty_moov+default_base_moof fragmented.mp4
+    ```
 
