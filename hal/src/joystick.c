@@ -21,10 +21,8 @@
 #define GPIO_LINE_NUMBER 15    // GPIO5
 
 // other constants
-#define THRESHOLD 400
-
-#define NS_PER_MS 1000000
-#define NS_PER_S 1000000000
+#define THRESHOLD 200
+#define DIAG_ADJUST_SCALE 1.2
 
 
 // global vars
@@ -182,5 +180,9 @@ float joystick_get_radius(void)
     double y_percent = joystick_get_y_val();
 
     float radius = sqrt((pow(x_percent, 2)) + (pow(y_percent, 2)));
+
+    // to account for diagonals, add ~0.2 (since maximum for 45 degrees is ~0.7)
+    radius *= DIAG_ADJUST_SCALE;
+    radius = radius > 1? 1.0 : radius;
     return radius;
 }

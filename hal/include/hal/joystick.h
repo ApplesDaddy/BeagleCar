@@ -35,5 +35,6 @@ void joystick_get_dir(enum joystick_x_dir *x_dir, enum joystick_y_dir *y_dir);
 bool joystick_is_pressed(void);
 
 int joystick_get_angle(void);           // @return [0, 360) where x=1, y=0 is 0
-float joystick_get_radius(void);
+float joystick_get_radius(void);        // @return [0.0, 1.0] where 1 means fully pushed in any direction,
+                                        // 0 means not pushed at all
 #endif

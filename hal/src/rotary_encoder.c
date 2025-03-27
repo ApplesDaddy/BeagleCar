@@ -17,9 +17,6 @@
 
 #define INIT_CHECK() { if(!initialized) { rot_encoder_init(); } }
 
-#define NS_PER_MS 1000000
-#define NS_PER_S 1000000000
-
 
 static bool initialized = false;
 static struct GpioLine* line_a = NULL;
