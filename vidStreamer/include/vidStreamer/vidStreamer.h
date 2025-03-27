@@ -17,17 +17,18 @@ extern "C" {
 class VidStreamer
 {
 public:
-    VidStreamer(std::string ip_addr); // constructor
+    VidStreamer(std::string ip_addr, std::string filename); // constructor
+
     ~VidStreamer();
 
-    void vidStreamer_init(std::string ip_addr);
-    void vidStreamer_cleanup();
+
 
 private:
     void openFile(std::string filename);
     void startStream();
 
-    std::string ip_addr;
+    std::string send_addr;
+    std::string file;
 };
 
 
