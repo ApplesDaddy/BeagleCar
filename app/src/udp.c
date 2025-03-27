@@ -65,8 +65,12 @@ int main(int argc, char* argv[])
 
 
     // listen for keypresses if sender, else sleep
-    initscr();
-    timeout(1000);
+    if(is_sender)
+    {
+        initscr();
+        timeout(1000);
+    }
+
     int curr_encoder = 0;
     while(is_sender || recv_is_active())
     {

@@ -110,10 +110,14 @@ static inline void send_joy_vals()
     #ifdef JOYSTICK_ANGLE
         int angle = joystick_get_angle();
         float radius = joystick_get_radius();
+        if(radius == 0) // no input -> dont bother sending
+        { return; }
         snprintf(msg_rx, MAX_UDP_LEN, "%d %d %f", CODE_JOYSTICK_VAL, angle, radius);
     #else
         float x = joystick_get_x_val();
         float y = joystick_get_y_val();
+        if(x == 0 && y == 0) // no input -> dont bother sending
+        { return; }
         snprintf(msg_rx, MAX_UDP_LEN, "%d %f %f", CODE_JOYSTICK_VAL, x, y);
     #endif
     sendto(sock, msg_rx, strlen(msg_rx), 0, (struct sockaddr*)&remote, sizeof(remote));

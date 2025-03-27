@@ -91,7 +91,7 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
             float y_val = atof(param);
 
             // TODO: do something with this input
-            printf("x: %f\t\ty: %f\n", x_val, y_val);
+            printf("x: %f   y: %f\n", x_val, y_val);
         } break;
         case CODE_ENCODER_VAL:
         {
