@@ -147,17 +147,17 @@ To manually run CMake from the command line use:
 ### udp program
 To run receiver:
 ```sh
-./udp
+(target or host) $ ./udp
 ```
 
 To run sender with hardware inputs: (joystick, rotary encoder)
 ```sh
-(target) ./udp --sender
+(target) $ ./udp --sender
 # q to quit
 ```
 To run sender on terminal with keyboard inputs (w/a/s/d=joystick, j/l=encoder, e=encoder push, space=joystick push)
 ```sh
-./udp --sender --terminal
+(target or host) $ ./udp --sender --terminal
 # q to quit
 ```
 If you want to run the terminal sender without ncurses:
