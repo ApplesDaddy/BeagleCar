@@ -5,9 +5,9 @@
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavformat/avformat.h>
-    #include <libavutil/imgutils.h>
-    #include <libavutil/avutil.h>
-    #include <libswscale/swscale.h>
+    // #include <libavutil/imgutils.h>
+    // #include <libavutil/avutil.h>
+    // #include <libswscale/swscale.h>
     }
 #include <fstream>
 #include <string>
@@ -24,11 +24,19 @@ public:
 
 
 private:
-    void openFile(std::string filename);
+    void openFile();
+    void initFormatContext(const char *filename);
+    void findVideoStream();
+    void initCodecContext();
     void startStream();
 
     std::string send_addr;
-    std::string file;
+    std::string filename;
+
+    AVFormatContext *formatContext = NULL;
+    AVCodecContext *codecContext = NULL;
+    const AVCodec *codec = NULL;
+    int streamIdx = -1;
 };
 
 
