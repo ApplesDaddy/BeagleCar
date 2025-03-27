@@ -4,6 +4,7 @@
 # credit: Chatgpt for helping with cross-compiling errors
     # linux commands to find where libraries where installed, and defining libraries manually
 
+# TODO: test if this works for others after arm64 package installation
 set(FFMPEG_INCLUDE_DIRS "/usr/include/aarch64-linux-gnu")
 set(FFMPEG_LIBRARY_DIRS "/usr/lib/aarch64-linux-gnu")
 
