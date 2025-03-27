@@ -72,6 +72,11 @@ Logitech C270 720p webcam
         (target)$ sudo apt install liblgpio-dev
     ```
 
+- udp terminal send testing
+    ```sh
+        (host) sudo apt-get install libncurses5-dev
+    ```
+
 ### Web Server
 - You can run the example server after building by doing the following:
 ```bash
@@ -138,3 +143,25 @@ To manually run CMake from the command line use:
   a. Change the SPI to be usable by anyone:
      `sudo chmod a+rw /dev/spidev0.*`
   b. Run the program with root access.
+
+### udp program
+To run receiver:
+```sh
+(target or host) $ ./udp
+```
+
+To run sender with hardware inputs: (joystick, rotary encoder)
+```sh
+(target) $ ./udp --sender
+# q to quit
+```
+To run sender on terminal with keyboard inputs (w/a/s/d=joystick, j/l=encoder, e=encoder push, space=joystick push)
+```sh
+(target or host) $ ./udp --sender --terminal
+# q to quit
+```
+If you want to run the terminal sender without ncurses:
+- change `getch()` to `getchar()` in `app/src/main.c`
+- comment out the dependency in `app/CMakeLists.txt`
+
+Sender/receiver IP addresses can be changed in `app/include/udp_constants.h`

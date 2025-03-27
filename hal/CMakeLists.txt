@@ -9,6 +9,7 @@ add_library(hal STATIC ${MY_SOURCES})
 
 target_include_directories(hal PUBLIC include)
 target_link_libraries(hal LINK_PRIVATE lcd)
+target_link_libraries(hal LINK_PRIVATE util)
 
 
 # (host) sudo apt-get install libutil-dev

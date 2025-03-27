@@ -10,9 +10,9 @@ project(Beagle_Car
 set(CMAKE_C_STANDARD 11)
 
 # set cross compiler + architecture
-set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
-set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-set(CMAKE_LIBRARY_ARCHITECTURE aarch64-linux-gnu) # so ld uses the correct version of 3rd party libraries
+# set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+# set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+# set(CMAKE_LIBRARY_ARCHITECTURE aarch64-linux-gnu) # so ld uses the correct version of 3rd party libraries
 
 
 add_compile_options(-Wall -Wpedantic -Wextra -g)
@@ -37,5 +37,7 @@ add_subdirectory(webServer)
 add_subdirectory(testing)
 
 add_subdirectory(hal)
+add_subdirectory(app)
+add_subdirectory(util)
 add_subdirectory(lcd)
 add_subdirectory(lgpio)
