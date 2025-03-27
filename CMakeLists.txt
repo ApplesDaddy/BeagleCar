@@ -7,7 +7,10 @@ project(Beagle_Car
 )
 
 # Compiler options (inherited by sub-folders)
-set(CMAKE_C_STANDARD 11)
+# set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+set(CMAKE_LIBRARY_ARCHITECTURE aarch64-linux-gnu)
 add_compile_options(-Wall -Wpedantic -Wextra)
 #add_compile_options(-Werror) 
 #crow_all.h gives a error due to a condition 
