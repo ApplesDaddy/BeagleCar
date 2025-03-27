@@ -37,5 +37,7 @@ add_subdirectory(webServer)
 add_subdirectory(testing)
 
 add_subdirectory(hal)
+add_subdirectory(app)
+add_subdirectory(util)
 add_subdirectory(lcd)
 add_subdirectory(lgpio)
