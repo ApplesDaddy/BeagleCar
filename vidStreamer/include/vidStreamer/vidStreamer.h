@@ -24,14 +24,28 @@ public:
 
 
 private:
-    void openFile();
-    void initFormatContext(const char *filename);
-    void findVideoStream();
-    void initCodecContext();
+    bool openFile();
+    void decode(AVCodecContext *decContext, AVFrame *frame, AVPacket *pkt, std::ofstream *outFile);
+    bool decodeVideo();
+    void pgmSave(const char *buf, int wrap, int xSize, int ySize, std::ofstream &outFile);
+    bool initFormatContext(const char *filename);
+    bool findVideoStream();
+    bool initCodecContext();
+    bool initPacket();
+    bool initFrame();
+    bool initFilePointers();
     void startStream();
 
     std::string send_addr;
     std::string filename;
+
+    std::string outfilename;
+
+    std::ofstream outFile;
+    std::ifstream inFile;
+
+    AVFrame *frame = NULL;
+    AVPacket *packet = NULL;
 
     AVFormatContext *formatContext = NULL;
     AVCodecContext *codecContext = NULL;
