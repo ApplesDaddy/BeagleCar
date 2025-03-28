@@ -254,5 +254,23 @@ void motor_set_speed(int speed, bool reverse) {
   current_speed = speed;
 }
 
+void motor_add_speed(int speed){
+    assert(initialized);
+
+    // Compute speed
+    int new_speed = current_speed + speed;
+    if (new_speed > 100) {
+        new_speed = 100;
+    } else if (new_speed < 0) {
+        new_speed = 0;
+    }
+
+    // Validate the new speed
+    assert(speed >= 0 && speed <= 100);
+    
+    // Set the new speed
+    motor_set_speed(current_speed, current_reverse);
+}
+
 int motor_get_speed(void) { return current_speed; }
-bool motor_reverse(void) { return current_reverse; }
+bool motor_get_reverse(void) { return current_reverse; }
