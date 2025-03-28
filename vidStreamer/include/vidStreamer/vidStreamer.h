@@ -5,6 +5,7 @@
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavformat/avformat.h>
+    #include <libavutil/opt.h>
     // #include <libavutil/imgutils.h>
     // #include <libavutil/avutil.h>
     // #include <libswscale/swscale.h>
@@ -25,32 +26,57 @@ public:
 
 private:
     bool openFile();
-    void decode(AVCodecContext *decContext, AVFrame *frame, AVPacket *pkt, std::ofstream *outFile);
-    bool decodeVideo();
-    void pgmSave(const char *buf, int wrap, int xSize, int ySize, std::ofstream &outFile);
-    bool initFormatContext(const char *filename);
+    bool initInputContext(const char *filename);
     bool findVideoStream();
     bool initCodecContext();
+
+    bool setupStream();
+    bool initOutputContext();
+    bool initOutputStream();
+    bool initEncoder();
     bool initPacket();
     bool initFrame();
-    bool initFilePointers();
+
     void startStream();
 
     std::string send_addr;
+
     std::string filename;
-
-    std::string outfilename;
-
-    std::ofstream outFile;
-    std::ifstream inFile;
 
     AVFrame *frame = NULL;
     AVPacket *packet = NULL;
 
-    AVFormatContext *formatContext = NULL;
+    AVFormatContext *inputFormatContext = NULL;
+    AVFormatContext *outputFormatContext = NULL;
+
+    const AVCodec *encoder = NULL;
+    AVCodecContext *encoderContext = NULL;
+
     AVCodecContext *codecContext = NULL;
     const AVCodec *codec = NULL;
     int streamIdx = -1;
+
+    AVStream *outputStream;
+
+
+
+
+
+    void decode(AVCodecContext *decContext, AVFrame *frame, AVPacket *pkt, std::ofstream *outFile);
+    bool decodeVideo();
+    void pgmSave(const char *buf, int wrap, int xSize, int ySize, std::ofstream &outFile);
+    bool initFilePointers();
+
+
+    std::string outfilename;
+    std::ofstream outFile;
+    std::ifstream inFile;
+
+
+
+
+
+
 };
 
 

@@ -8,7 +8,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    std::string ip_addr = "192.168.7.1:12345";
+    std::string ip_addr = "udp://127.0.0.1:12345";
     std::string filename = argv[1];
 
     // std::cout << "You have entered: " << filename << std::endl;

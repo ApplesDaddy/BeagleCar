@@ -6,6 +6,9 @@ references:
 - https://github.com/loupus/ffmpeg_tutorial/
 - https://www.youtube.com/playlist?list=PL4_PZmmnAGij12Uk3hifiEV9ESncwRfdI
  - ffmpeg official documentation and examples
+ - https://stackoverflow.com/questions/32254897/streaming-h-264-over-udp-using-ffmpeg-and-dimensions-not-set-error
+ https://github.com/leandromoreira/ffmpeg-libav-tutorial
+ https://stackoverflow.com/questions/40825300/ffmpeg-create-rtp-stream
 **/
 
 
@@ -21,19 +24,23 @@ VidStreamer::VidStreamer(std::string ip_addr, std::string filename)
     if(!openFile()){
         return;
     }
-    if(!decodeVideo()){
+    // if(!decodeVideo()){
+    //     return;
+    // }
+    if(!setupStream()){
         return;
     }
-    // startStream();
+    // TODO: error checking
+    startStream();
 }
 
 VidStreamer::~VidStreamer() 
 {
     std::cout << "Destructor...\n";
 
-    if(formatContext){
-        std::cout << "Freeing AVFormatContext...\n";
-        avformat_close_input(&formatContext);
+    if(inputFormatContext){
+        std::cout << "Freeing input format context...\n";
+        avformat_close_input(&inputFormatContext);
     }
 
     if(codecContext){
@@ -55,26 +62,36 @@ VidStreamer::~VidStreamer()
         std::cout << "Closing input file...\n";
         inFile.close();
     }
-    if(outFile.is_open()){
-        std::cout << "Closing output file...\n";
-        outFile.close();
+
+    if(encoderContext){
+        std::cout << "Freeing encoder context...\n";
+        avcodec_free_context(&encoderContext);
     }
+
+    if(outputFormatContext){
+        std::cout << "Freeing output format context...\n";
+        avformat_free_context(outputFormatContext);
+    }
+    // if(outFile.is_open()){
+    //     std::cout << "Closing output file...\n";
+    //     outFile.close();
+    // }
 }
 
 
 
-bool VidStreamer::initFormatContext(const char *filename)
+bool VidStreamer::initInputContext(const char *filename)
 {
     // allocate memory for format
-    formatContext = avformat_alloc_context();
+    inputFormatContext = avformat_alloc_context();
 
     // Open input stream and read header
-    if(avformat_open_input(&formatContext, filename, NULL, NULL) < 0) {
+    if(avformat_open_input(&inputFormatContext, filename, NULL, NULL) < 0) {
         std::cout << "Error: Could not open file\n";
         return false;
     }
     // get stream info from format context
-    if(avformat_find_stream_info(formatContext, NULL) < 0){
+    if(avformat_find_stream_info(inputFormatContext, NULL) < 0){
         std::cout << "Error: Could not find stream info\n";
         return false;
     }
@@ -83,12 +100,13 @@ bool VidStreamer::initFormatContext(const char *filename)
 }
 
 
+// set up input stream
 bool VidStreamer::findVideoStream()
 {
     // get stream index
-    for(uint i = 0; i < formatContext->nb_streams; i++){
+    for(uint i = 0; i < inputFormatContext->nb_streams; i++){
         // check if stream codec is a video
-        if(formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
+        if(inputFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
             streamIdx = i;
             break;
         }
@@ -100,7 +118,7 @@ bool VidStreamer::findVideoStream()
     }
 
     // print metadata
-    // av_dump_format(formatContext, streamIdx, filename.c_str(), 0); // 0 = input, 1 = output
+    // av_dump_format(inputFormatContext, streamIdx, filename.c_str(), 0); // 0 = input, 1 = output
     return true;
 }
 
@@ -111,8 +129,8 @@ bool VidStreamer::initCodecContext()
     codecContext = avcodec_alloc_context3(NULL);
 
     // fill codec context
-    if(avcodec_parameters_to_context(codecContext, formatContext->streams[streamIdx]->codecpar) < 0){
-        std::cout << "Error: Cannot get codec parameters\n";
+    if(avcodec_parameters_to_context(codecContext, inputFormatContext->streams[streamIdx]->codecpar) < 0){
+        std::cout << "Error: Could not get input stream codec parameters\n";
         return false;
     }
 
@@ -167,13 +185,13 @@ bool VidStreamer::initFilePointers()
         std::cout << "Successfully opened input file\n";
     }
 
-    this->outFile.open(this->outfilename, std::ofstream::out | std::ofstream::binary);
-    if(!this->outFile.is_open()){
-        std::cout << "Error: Could not open output file\n";
-        return false;
-    } else {
-        std::cout << "Successfully opened output file\n";
-    }
+    // this->outFile.open(this->outfilename, std::ofstream::out | std::ofstream::binary);
+    // if(!this->outFile.is_open()){
+    //     std::cout << "Error: Could not open output file\n";
+    //     return false;
+    // } else {
+    //     std::cout << "Successfully opened output file\n";
+    // }
     return true;
 }
 
@@ -186,12 +204,13 @@ bool VidStreamer::openFile()
     std::cout << "Opening file: " << this->filename << "...\n";
 
     // Demuxer (read media file and split into packets)
-    if(!initFormatContext(filename)){
+    if(!initInputContext(filename)){
         return false;
     }
     if(!findVideoStream()){
         return false;
     }
+    // used for decoder
     if(!initCodecContext()){
         return false;
     }
@@ -260,7 +279,7 @@ bool VidStreamer::decodeVideo()
 
     while(!inFile.eof()){
         // read raw data
-        if(av_read_frame(formatContext, packet) < 0){
+        if(av_read_frame(inputFormatContext, packet) < 0){
             std::cout << "Could not read frame\n";
             break;
         }
@@ -277,9 +296,129 @@ bool VidStreamer::decodeVideo()
 }
 
 
+bool VidStreamer::setupStream()
+{
+    std::cout << "Starting stream...\n";
+    if(!initOutputContext()){
+        return false;
+    }
+    if(!initEncoder()){
+        return false;
+    }
+    if(!initOutputStream()){
+        return false;
+    }
+    if(!initPacket()){
+        return false;
+    }
+    if(!initFrame()){
+        return false;
+    }
+    if(!initFilePointers()){
+        return false;
+    }
+
+    return true;
+}
+
+
+bool VidStreamer::initOutputContext()
+{
+    // TODO: define macro for format name
+    // TODO: remux to mp4 so server can buffer it
+    avformat_alloc_output_context2(&outputFormatContext, NULL, "mpegts", send_addr.c_str());
+    if(!outputFormatContext){
+        std::cout << "Error: Could not create output context\n";
+        return false;
+    }
+
+    if(avio_open(&outputFormatContext->pb, send_addr.c_str(), AVIO_FLAG_WRITE) < 0){
+        std::cout << "Error: Could not access resource indicated by URL\n";
+        return false;
+    }
+
+    std::cout << "Output context created\n";
+    std::cout << "Sending stream to " << send_addr << std::endl;
+    return true;
+}
+
+
+bool VidStreamer::initOutputStream()
+{
+    outputStream = avformat_new_stream(outputFormatContext, NULL);
+    if(!outputStream){
+        std::cout << "Error: Could not create output stream\n";
+        return false;
+    }
+
+    if(avcodec_parameters_from_context(outputStream->codecpar, encoderContext) < 0){
+        std::cout << "Error: Could not set output stream codec parameters";
+        return false;
+    }
+    return true;
+}
+
+
+bool VidStreamer::initEncoder()
+{
+    encoder = avcodec_find_encoder(AV_CODEC_ID_H264);
+    if(!encoder){
+        std::cout << "Error: Could not find encoder\n";
+        return false;
+    }
+    std::cout << "Encoder found\n";
+
+    encoderContext = avcodec_alloc_context3(encoder);
+    // encoderContext codec options
+    //  credit: stackoverflow link
+    encoderContext->bit_rate = codecContext->bit_rate;
+    // same dimensions as input file
+    encoderContext->width = codecContext->width;
+    encoderContext->height = codecContext->height;
+    encoderContext->pix_fmt = codecContext->pix_fmt;
+    encoderContext->time_base.num = 1;
+    encoderContext->time_base.den = 25;
+
+    // chatgpt
+    av_opt_set(encoderContext->priv_data, "preset", "ultrafast", 0);
+    av_opt_set(encoderContext->priv_data, "tune", "zerolatency", 0);
+    
+
+    if(avcodec_open2(encoderContext, encoder, NULL) < 0){
+        std::cout << "Failed to open encoder\n";
+        return false;
+    }
+
+    return true;
+}
 
 void VidStreamer::startStream()
 {
+    if(avformat_write_header(outputFormatContext, NULL) < 0){
+        std::cout << "Failed to write header\n";
+        return;
+    }
     std::cout << "Starting stream...\n";
-    return;
+    while(av_read_frame(inputFormatContext, packet) >= 0){
+        if(packet->stream_index == streamIdx){
+            if(avcodec_send_packet(codecContext, packet) < 0){
+                std::cout << "Error sending a packet for decoding\n";
+                break;
+            }
+            while(avcodec_receive_frame(codecContext, frame) > 0){
+                if(avcodec_send_frame(encoderContext, frame) < 0){
+                    std::cout << "Error sending frame to encoder\n";
+                    break;
+                }
+                while(avcodec_receive_packet(encoderContext, packet) >= 0){
+
+                    //chatgpt
+                    av_packet_rescale_ts(packet, encoderContext->time_base, outputStream->time_base);
+                    av_interleaved_write_frame(outputFormatContext, packet);
+                    av_packet_unref(packet);
+                }
+            }
+        }
+        av_packet_unref(packet);
+    }
 }
