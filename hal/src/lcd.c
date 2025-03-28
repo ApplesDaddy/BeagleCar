@@ -8,12 +8,88 @@
 #include <stdio.h>		//printf()
 #include <stdlib.h>		//exit()
 #include <signal.h>     //signal()
+#include <string.h>
 #include <stdbool.h>
+#include <stdatomic.h>
 #include <assert.h>
+#include <pthread.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 
 
 static UWORD *s_fb;
 static bool isInitialized = false;
+
+static struct SwsContext *resize;
+static int context_height;
+static AVFrame* queued_frame;
+static AVFrame* buffered_frame;
+static atomic_bool dirty_frame = false;
+
+static pthread_mutex_t frame_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t frame_cond = PTHREAD_COND_INITIALIZER;
+static bool frame_thread_active = false;
+static atomic_bool stop_thread = false;
+static pthread_t frame_thread;
+
+
+void* frame_thread_func(void* args)
+{
+    (void)args;
+
+    do
+    {
+        // wait for frame to be given
+        pthread_mutex_lock(&frame_lock);
+        while(!dirty_frame && !stop_thread)
+        { pthread_cond_wait(&frame_cond, &frame_lock); }
+
+        if(!dirty_frame) // should only be if we're quitting
+        { pthread_mutex_unlock(&frame_lock); continue; }
+
+        // copy frame so main thread can queue a different frame
+        // scale down to fit and store locally
+        sws_scale(resize, buffered_frame->data, buffered_frame->linesize, 0, context_height,
+                  queued_frame->data, queued_frame->linesize);
+        dirty_frame = false;
+
+        pthread_mutex_unlock(&frame_lock);
+
+
+        // display frame
+        Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
+        Paint_Clear(WHITE);
+
+        assert(isInitialized);
+
+        int h = queued_frame->height < LCD_1IN54_HEIGHT? queued_frame->height : LCD_1IN54_HEIGHT;
+        int w = queued_frame->width < LCD_1IN54_WIDTH? queued_frame->width : LCD_1IN54_WIDTH;
+        for(int row = 0; row < h; row++)
+        {
+            for(int col = 0; col < w; col++)
+            {
+                // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
+                // get yuv value at pixel
+                unsigned char y = queued_frame->data[0][queued_frame->linesize[0] * row + col];
+                unsigned char u = queued_frame->data[1][(int)(queued_frame->linesize[1] * (row/2.0) + (col/2.0))];
+                unsigned char v = queued_frame->data[2][(int)(queued_frame->linesize[2] * (row/2.0) + (col/2.0))];
+
+                // convert to rgb
+                const unsigned char r = y + 1.402 * (v-128);
+                const unsigned char g = y - 0.344 * (u-128) - 0.714 * (v-128);
+                const unsigned char b = y + 1.772 * (u-128);
+
+                int data=RGB((r), (g), (b));
+                Paint_SetPixel(col, row, data);
+            }
+        }
+        LCD_1IN54_Display(s_fb);
+    }
+    while(!stop_thread);
+    pthread_mutex_unlock(&frame_lock);
+
+    return NULL;
+}
 
 
 // source: cmake_lcdstarter from prof Brian Fraser
@@ -44,15 +120,47 @@ void lcd_init()
         exit(0);
     }
 
-    // avcodec_register_all();
-
     Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
+
     isInitialized = true;
 }
+
+void lcd_video_init(AVCodecContext *context)
+{
+    assert(isInitialized);
+
+    // setup to resize image to fit lcd screen
+    resize = sws_getContext(context->width, context->height, context->pix_fmt, LCD_1IN54_WIDTH,
+                            LCD_1IN54_HEIGHT, context->pix_fmt, SWS_SINC, NULL, NULL, NULL);
+
+    // second frame for scaled image
+    queued_frame = av_frame_alloc();
+    queued_frame->width = LCD_1IN54_WIDTH;
+    queued_frame->height = LCD_1IN54_HEIGHT;
+    queued_frame->format = context->pix_fmt;
+    int ret = av_frame_get_buffer(queued_frame, 0);
+    ret = av_frame_make_writable(queued_frame);
+
+    context_height = context->height;
+
+    stop_thread = false;
+    frame_thread_active = true;
+    pthread_create(&frame_thread, NULL, frame_thread_func, NULL);
+}
+
 // source: cmake_lcdstarter from prof Brian Fraser
 void lcd_cleanup()
 {
     assert(isInitialized);
+
+    if(frame_thread_active)
+    {
+        stop_thread = true;
+        pthread_cond_signal(&frame_cond);
+        pthread_join(frame_thread, NULL);
+    }
+    av_frame_free(&queued_frame);
+    av_frame_free(&buffered_frame);
 
     // Module Exit
     free(s_fb);
@@ -96,31 +204,13 @@ void lcd_show_message(char* message)
 
 void lcd_show_frame(AVFrame * frame)
 {
-    Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
-    Paint_Clear(WHITE);
-
     assert(isInitialized);
 
-    int h = frame->height < LCD_1IN54_HEIGHT? frame->height : LCD_1IN54_HEIGHT;
-    int w = frame->width < LCD_1IN54_WIDTH? frame->width : LCD_1IN54_WIDTH;
-	for(int row = 0; row < h; row++)
-	{
-		for(int col = 0; col < w; col++)
-		{
-            // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
-            // get yuv value at pixel
-            unsigned char y = frame->data[0][frame->linesize[0] * row + col];
-            unsigned char u = frame->data[1][(int)(frame->linesize[1] * (row/2.0) + (col/2.0))];
-            unsigned char v = frame->data[2][(int)(frame->linesize[2] * (row/2.0) + (col/2.0))];
+    pthread_mutex_lock(&frame_lock);
 
-            // convert to rgb
-            const unsigned char r = y + 1.402 * (v-128);
-            const unsigned char g = y - 0.344 * (u-128) - 0.714 * (v-128);
-            const unsigned char b = y + 1.772 * (u-128);
+    buffered_frame = av_frame_clone(frame);    // increment ref counter, not deep copy
+    dirty_frame = true;
+    pthread_cond_signal(&frame_cond);
 
-            int data=RGB((r), (g), (b));
-            Paint_SetPixel(col, row, data);
-        }
-	}
-    LCD_1IN54_Display(s_fb);
+    pthread_mutex_unlock(&frame_lock);
 }

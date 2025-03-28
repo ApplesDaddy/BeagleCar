@@ -13,6 +13,7 @@
 
 
 void lcd_init();
+void lcd_video_init(AVCodecContext *context);
 void lcd_cleanup();
 
 void lcd_show_message(char* message);
