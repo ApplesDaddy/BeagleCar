@@ -165,3 +165,10 @@ If you want to run the terminal sender without ncurses:
 - comment out the dependency in `app/CMakeLists.txt`
 
 Sender/receiver IP addresses can be changed in `app/include/udp_constants.h`
+
+
+
+## Motor and Servo Control
+ - The motor expects a 71hz signal with the duty cycle for neutral being 1549us, full reverse being 1296us and full forward being 1789us. ![](images/oscilli_motor.jpg.png "motor signal")
+ - The servo expects 50hz though may accept outside of those bounds and goes from 1ms to 2ms from one side to the other. 
+ - Both require a pwm signal. Currently the motor uses gpiopin 15 which is the right most uart pin when the uart header is on the top left of the board when looked at from above.
