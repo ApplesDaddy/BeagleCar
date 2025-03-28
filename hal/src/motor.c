@@ -266,10 +266,10 @@ void motor_add_speed(int speed){
     }
 
     // Validate the new speed
-    assert(speed >= 0 && speed <= 100);
+    assert(new_speed >= 0 && new_speed <= 100);
     
     // Set the new speed
-    motor_set_speed(current_speed, current_reverse);
+    motor_set_speed(new_speed, current_reverse);
 }
 
 int motor_get_speed(void) { return current_speed; }

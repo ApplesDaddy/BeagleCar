@@ -53,7 +53,7 @@ static void left(void) { motor_add_speed(5); }
 
 static void right(void) { motor_add_speed(-5); }
 
-static void btn_press(void) { printf("Button was pressed.\n") }
+static void btn_press(void) { printf("Button was pressed.\n"); }
 
 static void *rotaryEncoder_turn(void *arg) {
     (void)arg;  // Gets rid of the unused variable warning
