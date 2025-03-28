@@ -17,13 +17,8 @@ extern "C"
 #define INBUF_SIZE 4096
 
 
-int fps = 30;
-int count = 0;
-struct SwsContext *resize;
-
-
 // source: https://ffmpeg.org/doxygen/4.2/decode_video_8c-example.html
-static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx, AVFrame* frame2)
+static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx)
 {
     if (!pkt || pkt->stream_index != stream_idx){ return; }
 
@@ -46,13 +41,7 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
             exit(1);
         }
 
-        // limit to 1 fps (hardware limitation)
-        if(count % fps == 0)
-        {
-            sws_scale(resize, frame->data, frame->linesize, 0, dec_ctx->height, frame2->data, frame2->linesize);
-            lcd_show_frame(frame2);
-        }
-        count++;
+        lcd_show_frame(frame);
     }
 }
 
@@ -109,7 +98,7 @@ void test_video()
     }
     AVStream* videoStream = format->streams[ video_stream_index ];
     AVCodecParameters *codecpar = videoStream->codecpar;
-    fps = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
+    // fps = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
 
     /* For some codecs, such as msmpeg4 and mpeg4, width and height
        MUST be initialized there because this information is not
@@ -142,28 +131,17 @@ void test_video()
     frame->height = c->height;
 
 
-    // setup to resize image to fit lcd screen
-    resize = sws_getContext(c->width, c->height, c->pix_fmt, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT,
-                            c->pix_fmt, SWS_SINC, NULL, NULL, NULL);
-
-    // second frame for scaled image
-    AVFrame* frame2 = av_frame_alloc();
-    frame2->width = LCD_1IN54_WIDTH;
-    frame2->height = LCD_1IN54_HEIGHT;
-    frame2->format = c->pix_fmt;
-    int ret = av_frame_get_buffer(frame2, 0);
-    ret = av_frame_make_writable(frame2);
-
+    lcd_video_init(c);
 
     // process file
     while (av_read_frame(format, pkt) >= 0)
     {
-        decode(c, frame, pkt, video_stream_index, frame2);
+        decode(c, frame, pkt, video_stream_index);
         av_packet_unref(pkt);
     }
 
     /* flush the decoder */
-    decode(c, frame, NULL, video_stream_index, frame2);
+    decode(c, frame, NULL, video_stream_index);
 
 
     // cleanup
