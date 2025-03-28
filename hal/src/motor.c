@@ -11,9 +11,9 @@ static bool enabled = false;
 // We are using gpio pin 15 for the pwm output which is attached to uart pin
 // on the right side when the uart pin group is top left when looking at the
 // board from the top.
-#define MOTOR_ENABLE_FILE "TODO: REPLACE WITH PWM ENABLE FILE"
-#define MOTOR_DUTY_CYCLE_FILE "TODO: REPLACE WITH PWM DUTY CYCLE FILE"
-#define MOTOR_PERIOD_FILE "TODO: REPLACE WITH PWM PERIOD FILE"
+#define MOTOR_ENABLE_FILE "/dev/hat/pwm/GPIO15/enable"
+#define MOTOR_DUTY_CYCLE_FILE "/dev/hat/pwm/GPIO15/duty_cycle"
+#define MOTOR_PERIOD_FILE "/dev/hat/pwm/GPIO15/period"
 
 #define NEUTRAL_US 1549 // 1549us
 #define FORWARD_US 1789 // 1789us
