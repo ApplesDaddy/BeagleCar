@@ -32,7 +32,7 @@ static bool frame_thread_active = false;
 static atomic_bool stop_thread = false;
 static pthread_t frame_thread;
 
-
+#define CLIP(x) ( (x) > 255 ? 255 : (x) < 0 ? 0 : (x) )
 void* frame_thread_func(void* args)
 {
     (void)args;
@@ -70,14 +70,19 @@ void* frame_thread_func(void* args)
             {
                 // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
                 // get yuv value at pixel
-                unsigned char y = queued_frame->data[0][queued_frame->linesize[0] * row + col];
-                unsigned char u = queued_frame->data[1][(int)(queued_frame->linesize[1] * (row/2.0) + (col/2.0))];
-                unsigned char v = queued_frame->data[2][(int)(queued_frame->linesize[2] * (row/2.0) + (col/2.0))];
+                int y = queued_frame->data[0][queued_frame->linesize[0] * row + col];
+                int u = queued_frame->data[1][(int)(queued_frame->linesize[1] * (row/2.0) + (col/2.0))];
+                int v = queued_frame->data[2][(int)(queued_frame->linesize[2] * (row/2.0) + (col/2.0))];
 
                 // convert to rgb
-                const unsigned char r = y + 1.402 * (v-128);
-                const unsigned char g = y - 0.344 * (u-128) - 0.714 * (v-128);
-                const unsigned char b = y + 1.772 * (u-128);
+                int r = y + 1.402 * (v - 128);
+                int g = y - 0.344 * (u - 128) - 0.714 * (v - 128);
+                int b = y + 1.772 * (u - 128);
+
+                // prevent overflow/underflow
+                r = CLIP(r);
+                g = CLIP(g);
+                b = CLIP(b);
 
                 int data=RGB((r), (g), (b));
                 Paint_SetPixel(col, row, data);

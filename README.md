@@ -144,6 +144,9 @@ To manually run CMake from the command line use:
      `sudo chmod a+rw /dev/spidev0.*`
   b. Run the program with root access.
 
+* [OPTIONAL] The LCD is limited to 1fps by default; increase the frame rate by following the steps from [this guide](https://github.com/wcs3/BYAI-mcu_spi0/tree/main)
+
+
 ### udp program
 To run receiver:
 ```sh
