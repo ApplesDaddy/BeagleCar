@@ -44,7 +44,8 @@ private:
     std::string filename;
 
     AVFrame *frame = NULL;
-    AVPacket *packet = NULL;
+    AVPacket *inputPacket = NULL;
+    AVPacket *outputPacket = NULL;
 
     AVFormatContext *inputFormatContext = NULL;
     AVFormatContext *outputFormatContext = NULL;
@@ -58,7 +59,7 @@ private:
 
     AVStream *outputStream;
 
-
+    AVDictionary *dict = NULL;
 
 
 

@@ -9,6 +9,7 @@ references:
  - https://stackoverflow.com/questions/32254897/streaming-h-264-over-udp-using-ffmpeg-and-dimensions-not-set-error
  https://github.com/leandromoreira/ffmpeg-libav-tutorial
  https://stackoverflow.com/questions/40825300/ffmpeg-create-rtp-stream
+ https://trac.ffmpeg.org/wiki/StreamingGuide
 **/
 
 
@@ -53,9 +54,14 @@ VidStreamer::~VidStreamer()
         av_frame_free(&frame);
     }
 
-    if(packet){
-        std::cout << "Freeing AV Packet...\n";
-        av_packet_free(&packet);
+    if(inputPacket){
+        std::cout << "Freeing Input Packet...\n";
+        av_packet_free(&inputPacket);
+    }
+
+    if(outputPacket){
+        std::cout << "Freeing Output Packet...\n";
+        av_packet_free(&outputPacket);
     }
 
     if(inFile.is_open()){
@@ -71,6 +77,11 @@ VidStreamer::~VidStreamer()
     if(outputFormatContext){
         std::cout << "Freeing output format context...\n";
         avformat_free_context(outputFormatContext);
+    }
+
+    if(dict){
+        std::cout << "Freeing dictionary...\n";
+        av_dict_free(&dict);
     }
     // if(outFile.is_open()){
     //     std::cout << "Closing output file...\n";
@@ -152,9 +163,15 @@ bool VidStreamer::initCodecContext()
 
 bool VidStreamer::initPacket()
 {
-    packet = av_packet_alloc();
-    if(!packet){
-        std::cout << "Error: Could not initialize packet\n";
+    inputPacket = av_packet_alloc();
+    if(!inputPacket){
+        std::cout << "Error: Could not initialize inputPacket\n";
+        return false;
+    }
+
+    outputPacket = av_packet_alloc();
+    if(!outputPacket){
+        std::cout << "Error: Could not initialize outputPacket\n";
         return false;
     }
 
@@ -245,7 +262,7 @@ void VidStreamer::decode(AVCodecContext *decContext, AVFrame *frame, AVPacket *p
     // char buf[1024];
     int ret = avcodec_send_packet(decContext, pkt);
     if(ret < 0){
-        std::cout << "Error sending a packet for decoding\n";
+        std::cout << "Error sending a inputPacket for decoding\n";
         return;
     }
     while(ret >= 0){
@@ -279,14 +296,14 @@ bool VidStreamer::decodeVideo()
 
     while(!inFile.eof()){
         // read raw data
-        if(av_read_frame(inputFormatContext, packet) < 0){
+        if(av_read_frame(inputFormatContext, inputPacket) < 0){
             std::cout << "Could not read frame\n";
             break;
         }
-        if(packet->stream_index == streamIdx){
-            decode(codecContext, frame, packet, &outFile);
+        if(inputPacket->stream_index == streamIdx){
+            decode(codecContext, frame, inputPacket, &outFile);
         }
-        av_packet_unref(packet);
+        av_packet_unref(inputPacket);
     }
 
     // flush decoder
@@ -337,7 +354,7 @@ bool VidStreamer::initOutputContext()
         return false;
     }
 
-    std::cout << "Output context created\n";
+    std::cout << "Output format: " << outputFormatContext->oformat->name <<std::endl;
     std::cout << "Sending stream to " << send_addr << std::endl;
     return true;
 }
@@ -379,12 +396,11 @@ bool VidStreamer::initEncoder()
     encoderContext->time_base.num = 1;
     encoderContext->time_base.den = 25;
 
-    // chatgpt
-    av_opt_set(encoderContext->priv_data, "preset", "ultrafast", 0);
-    av_opt_set(encoderContext->priv_data, "tune", "zerolatency", 0);
+    av_dict_set(&dict, "tune", "zerolatency", 0);
+    av_dict_set(&dict, "preset", "ultrafast",0);
     
 
-    if(avcodec_open2(encoderContext, encoder, NULL) < 0){
+    if(avcodec_open2(encoderContext, encoder, &dict) < 0){
         std::cout << "Failed to open encoder\n";
         return false;
     }
@@ -394,31 +410,65 @@ bool VidStreamer::initEncoder()
 
 void VidStreamer::startStream()
 {
-    if(avformat_write_header(outputFormatContext, NULL) < 0){
+    if (avformat_write_header(outputFormatContext, NULL) < 0) {
         std::cout << "Failed to write header\n";
         return;
     }
     std::cout << "Starting stream...\n";
-    while(av_read_frame(inputFormatContext, packet) >= 0){
-        if(packet->stream_index == streamIdx){
-            if(avcodec_send_packet(codecContext, packet) < 0){
-                std::cout << "Error sending a packet for decoding\n";
-                break;
+    
+
+    // TODO: clean up chatgpt    
+    while (av_read_frame(inputFormatContext, inputPacket) >= 0) {
+        if (inputPacket->stream_index == streamIdx) {
+            if (avcodec_send_packet(codecContext, inputPacket) < 0) {
+                std::cout << "Error sending inputPacket for decoding\n";
+
+                // TODO: comment
+                av_packet_unref(inputPacket);
+                continue;
             }
-            while(avcodec_receive_frame(codecContext, frame) > 0){
-                if(avcodec_send_frame(encoderContext, frame) < 0){
+            
+            // TODO: error checking
+            // Process all decoded frames
+            while (avcodec_receive_frame(codecContext, frame) >= 0) {
+                
+                // Send frame to encoder
+                if (avcodec_send_frame(encoderContext, frame) < 0) {
                     std::cout << "Error sending frame to encoder\n";
+                    // TODO: comment
+                    av_frame_unref(frame);
                     break;
                 }
-                while(avcodec_receive_packet(encoderContext, packet) >= 0){
+                
+                // TODO: who is receiving encoded packets
+                // Receive encoded packets
+                while (avcodec_receive_packet(encoderContext, outputPacket) >= 0) {
+                    if (outputPacket->size == 0) {
+                        std::cout << "Warning: Encoded packet size = 0\n";
 
-                    //chatgpt
-                    av_packet_rescale_ts(packet, encoderContext->time_base, outputStream->time_base);
-                    av_interleaved_write_frame(outputFormatContext, packet);
-                    av_packet_unref(packet);
+                        // TODO: didn't figure out the ref/unref flow
+                        av_packet_unref(outputPacket);
+                        continue;
+                    }
+                    
+                    // Rescale timestamps
+                    av_packet_rescale_ts(outputPacket, encoderContext->time_base, outputStream->time_base);
+                    
+                    // Write the packet
+                    if (av_interleaved_write_frame(outputFormatContext, outputPacket) < 0) {
+                        std::cout << "Error writing frame\n";
+                    }
+                    av_packet_unref(outputPacket);
                 }
+                // TODO: didn't know to unref frame
+                av_frame_unref(frame);
             }
+            // TODO: not sure if this is where it goes
+            av_packet_unref(inputPacket);
         }
-        av_packet_unref(packet);
+        // av_packet_unref(inputPacket);
     }
+    
+    // TODO: what is write trailer?
+    av_write_trailer(outputFormatContext);
 }
