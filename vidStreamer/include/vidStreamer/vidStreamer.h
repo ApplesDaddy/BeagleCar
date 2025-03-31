@@ -13,8 +13,6 @@ extern "C" {
 #include <fstream>
 #include <string>
 
-// reference: https://friendlyuser.github.io/posts/tech/cpp/Using_FFmpeg_in_C++_A_Comprehensive_Guide/
-
 class VidStreamer
 {
 public:
@@ -27,23 +25,26 @@ public:
 private:
     bool openFile();
     bool initInputContext(const char *filename);
-    bool findVideoStream();
-    bool initCodecContext();
+    bool findInputStream();
+    bool initDecoder();
 
-    bool setupStream();
+    bool setupOutputStream();
     bool initOutputContext();
     bool initOutputStream();
     bool initEncoder();
-    bool initPacket();
-    bool initFrame();
+    bool initPackets();
+    bool initInputFrame();
+    bool initInputFile();
 
-    void startStream();
+    void startOutputStream();
 
     std::string send_addr;
 
     std::string filename;
+    std::ifstream inFile;
 
-    AVFrame *frame = NULL;
+    AVFrame *inputFrame = NULL;
+
     AVPacket *inputPacket = NULL;
     AVPacket *outputPacket = NULL;
 
@@ -53,30 +54,16 @@ private:
     const AVCodec *encoder = NULL;
     AVCodecContext *encoderContext = NULL;
 
-    AVCodecContext *codecContext = NULL;
-    const AVCodec *codec = NULL;
-    int streamIdx = -1;
+    const AVCodec *decoder = NULL;
+    AVCodecContext *decoderContext = NULL;
 
+    int inputStreamIdx = -1;
     AVStream *outputStream;
 
     AVDictionary *dict = NULL;
 
 
-
-    void decode(AVCodecContext *decContext, AVFrame *frame, AVPacket *pkt, std::ofstream *outFile);
     bool decodeVideo();
-    void pgmSave(const char *buf, int wrap, int xSize, int ySize, std::ofstream &outFile);
-    bool initFilePointers();
-
-
-    std::string outfilename;
-    std::ofstream outFile;
-    std::ifstream inFile;
-
-
-
-
-
 
 };
 
