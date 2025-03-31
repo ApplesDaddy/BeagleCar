@@ -12,9 +12,12 @@ find_library(udp gpiod)
 target_link_libraries(udp LINK_PRIVATE gpiod)
 
 # Support ncurses (only needed to test udp sending with terminal)
+set(CURSES_INCLUDE_PATH /usr/include)
+set(CURSES_LIBRARY /usr/lib/aarch64-linux-gnu/libncurses.so)
 find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
-target_link_libraries(udp PRIVATE ${CURSES_LIBRARIES})
+target_link_libraries(udp PRIVATE ${CURSES_LIBRARY})
+# include_directories(${CURSES_INCLUDE_DIR})
+# target_link_libraries(udp PRIVATE ${CURSES_LIBRARIES})
 
 # PTHREAD support
 find_package(Threads REQUIRED)
