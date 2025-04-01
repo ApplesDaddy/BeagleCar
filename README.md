@@ -77,6 +77,23 @@ Logitech C270 720p webcam
         (host) sudo apt-get install libncurses5-dev
     ```
 
+- wifi client
+    Only have to do once:
+    `(target) sudo apt-get install wpasupplicant`
+    set `/etc/wpa_supplicant/wpa_supplicant.conf` to (update ssid and password):
+    ```
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=US
+    network={
+    ssid="wifi_ssid"
+    psk="wifi_password"
+    }
+    ```
+    On reboot/boot:
+    `(target) sudo ./wifi_client.sh`
+
+
 ### Web Server
 - You can run the example server after building by doing the following:
 ```bash
