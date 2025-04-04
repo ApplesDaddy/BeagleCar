@@ -9,6 +9,7 @@ extern "C"
     #include "libavutil/avutil.h"
     #include "libavformat/avformat.h"
     #include "libswscale/swscale.h"
+    #include <libavutil/opt.h>
     #include "LCD_1in54.h"
 
 
@@ -48,49 +49,25 @@ static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int s
 void test_video()
 {
     // open file
-    char* filename = "pic.mp4";
+    // char* filename = "pic.mp4";
+    const char* filename = "udp://192.168.7.2:12345?fifo=size5000000&overrun_nonfatal=1";
 
-    /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
-    uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
-    memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
-
-    /* find the MPEG-4 decoder */
-    const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-    if (!codec)
-    {
-        fprintf(stderr, "Codec not found\n");
-        exit(1);
-    }
-
-    AVCodecParserContext *parser = av_parser_init(codec->id);
-    parser->flags = PARSER_FLAG_COMPLETE_FRAMES;
-    if (!parser)
-    {
-        fprintf(stderr, "parser not found\n");
-        exit(1);
-    }
-
-    AVCodecContext *c = avcodec_alloc_context3(codec);
-    if (!c)
-    {
-        fprintf(stderr, "Could not allocate video codec context\n");
-        exit(1);
-    }
-
-    // get frame rate to limit writing to lcd
+    // open file
     AVFormatContext * format = NULL;
     if ( avformat_open_input( & format, filename, NULL, NULL ) != 0 )
     {
         fprintf(stderr, "Could not get format context\n");
         exit(1);
     }
+
     if ( avformat_find_stream_info( format, NULL ) < 0)
     {
         fprintf(stderr, "Could not get stream info\n");
         exit(1);
     }
+
     // get index of video stream (since mp4 has audio and video streams)
-    int video_stream_index = av_find_best_stream( format, AVMEDIA_TYPE_VIDEO, -1, -1, & codec, 0 );
+    int video_stream_index = av_find_best_stream( format, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0 );
     if ( video_stream_index < 0 )
     {
         fprintf(stderr, "Could not get stream index\n");
@@ -98,28 +75,62 @@ void test_video()
     }
     AVStream* videoStream = format->streams[ video_stream_index ];
     AVCodecParameters *codecpar = videoStream->codecpar;
-    // fps = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
+    // get frame rate to limit writing to lcd
+    // double fps = (double)videoStream->r_frame_rate.num / (double)videoStream->r_frame_rate.den;
 
-    /* For some codecs, such as msmpeg4 and mpeg4, width and height
-       MUST be initialized there because this information is not
-       available in the bitstream. */
-    avcodec_parameters_to_context(c, codecpar);
+    const AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
+    if (!codec)
+    {
+        fprintf(stderr, "Codec not found\n");
+        exit(1);
+    }
+
+    AVCodecParserContext *parser = av_parser_init(codec->id);
+    if (!parser)
+    {
+        fprintf(stderr, "parser not found\n");
+        exit(1);
+    }
+    parser->flags = PARSER_FLAG_COMPLETE_FRAMES;
+
+
+    AVCodecContext *c = avcodec_alloc_context3(codec);
+    if (!c)
+    {
+        fprintf(stderr, "Could not allocate video codec context\n");
+        exit(1);
+    }
     c->flags |= AV_CODEC_FLAG_LOW_DELAY;
     c->flags2 |= AV_CODEC_FLAG2_FAST;
 
+    if(avcodec_parameters_to_context(c, codecpar) < 0){
+        fprintf(stderr, "Failed to copy codec parameters to codec context\n");
+        exit(1);
+    }
+
+
+    /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
+    uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
+    memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+
+
     // TODO: look into include error
-    // av_opt_set(codecpar->priv_data, "preset", "ultrafast", 0);
-    // av_opt_set(codecpar->priv_data, "tune", "zerolatency", 0);
+    AVDictionary *opt = NULL;
+    av_dict_set(&opt, "preset", "ultrafast", 0);
+    av_dict_set(&opt, "tune", "zerolatency", 0);
 
     /* open it */
-    if (avcodec_open2(c, codec, NULL) < 0)
+    if (avcodec_open2(c, codec, &opt) < 0)
     {
         fprintf(stderr, "Could not open codec\n");
         exit(1);
     }
 
     AVPacket *pkt = av_packet_alloc();
-    if (!pkt) { exit(1); }
+    if (!pkt) { 
+        fprintf(stderr, "Could not allocate packet\n");
+        exit(1); 
+    }
 
     AVFrame *frame = av_frame_alloc();
     if (!frame)
@@ -127,6 +138,10 @@ void test_video()
         fprintf(stderr, "Could not allocate video frame\n");
         exit(1);
     }
+
+    /* For some codecs, such as msmpeg4 and mpeg4, width and height
+    MUST be initialized there because this information is not
+    available in the bitstream. */
     frame->width = c->width;
     frame->height = c->height;
 
