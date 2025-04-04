@@ -3,6 +3,31 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
+void close_port();
+/*
+References
+    https://github.com/leandromoreira/ffmpeg-libav-tutorial/blob/master/2_remuxing.c
+    https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API/Transcoding_assets_for_MSE
+    https://ffmpeg.org/ffmpeg-protocols.html#udp
+    https://stackoverflow.com/questions/52303867/how-do-i-set-ffmpeg-pipe-output
+*/
+#define FFMPEG_CMD "ffmpeg"
+#define FFLAGS "-fflags"
+#define FFLAGS_ARG  "+genpts+igndts+discardcorrupt"
+#define INPUT "-i"
+#define IP_ADDR "192.168.7.2"
+#define INPUT_URL_ARGS "?fifo_size=5000000&overrun_nonfatal=1"
+#define INPUT_URL "udp://" IP_ADDR ":" PORT INPUT_URL_ARGS
+#define COPY "-c:v"
+#define COPY_ARG "copy"
+#define MOVFLAG "-movflags"
+#define MOVFLAG_ARGS "frag_keyframe+empty_moov+default_base_moof"
+#define FORMAT "-f"
+#define FORMAT_ARG "mp4"
+#define OUTPUT "pipe:1"
+
+int p_id, pipe_fd[2];
+
 // Example from: https://crowcpp.org/master/getting_started/your_first_application/
 void add_routes(crow::SimpleApp& app){
     
@@ -65,24 +90,8 @@ void add_routes(crow::SimpleApp& app){
         CROW_LOG_INFO << "new websocket connection";
         CROW_LOG_INFO << "ip address: " << conn.get_remote_ip();
 
-        /*
-        References
-            https://github.com/leandromoreira/ffmpeg-libav-tutorial/blob/master/2_remuxing.c
-            https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API/Transcoding_assets_for_MSE
-            https://ffmpeg.org/ffmpeg-protocols.html#udp
-            https://stackoverflow.com/questions/52303867/how-do-i-set-ffmpeg-pipe-output
-        */
-        std::string fflags = "-fflags +genpts+igndts+discardcorrupt";
-        std::string input_url = "-i \"udp://192.168.7.2:12345";
-        std::string input_url_opts = "?fifo_size=5000000&overrun_nonfatal=1\"";
-        std::string copy_flag = "-c:v copy";
-        std::string mov_flags = "-movflags frag_keyframe+empty_moov+default_base_moof";
-        std::string format_flag = "-f mp4";
-        std::string output_file = "pipe:1";
-        std::string ffmpeg_cmd = "ffmpeg " + fflags + " " + input_url + " " + input_url_opts + " " 
-        + copy_flag + " " + mov_flags + " " + format_flag + " " + output_file;
     
-        int status, p_id, pipe_fd[2]; 
+        int status; 
 
         // Credit: https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/pipes/pipe.cpp 
         status = pipe(pipe_fd); // pipe_fd := file descriptors 
@@ -112,9 +121,10 @@ void add_routes(crow::SimpleApp& app){
             // Write to pipe
             // https://stackoverflow.com/questions/39873304/include-ffmpeg-command-in-c-program
             // gave up trying to write remuxer using libav; ffmpeg system call instead
-            const char* ffmpeg_cmd_c = ffmpeg_cmd.c_str();
             // replaces the current process image with ffmpeg's process image
-            if(system(ffmpeg_cmd_c) == -1){
+            if(execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, 
+                COPY, COPY_ARG, MOVFLAG, MOVFLAG_ARGS, FORMAT, FORMAT_ARG, 
+                OUTPUT, (const char *) NULL) == -1){
                 std::cout << "Error: Launching ffmpeg failed\n";
             }
 
@@ -126,8 +136,18 @@ void add_routes(crow::SimpleApp& app){
     })
 
     .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t){
-            // credit: https://stackoverflow.com/questions/11583562/how-to-kill-a-process-running-on-particular-port-in-linux
-            system("fuser -k 12345/udp"); // Close ffmpeg udp connection
+            // pid_t p_id = fork();
+            // if(p_id == -1){
+            //     std::cout << "Error forking on close\n";
+            // } else if (p_id == 0){
+            //     close_port();
+            // }
+            if(p_id > 0){
+                kill(0, SIGTERM);
+                waitpid(0, nullptr, 0);
+            }
+            close(pipe_fd[0]);
+            close(pipe_fd[1]);
             CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
             CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
             conn.close();
@@ -174,4 +194,21 @@ void send_video_websocket_sample(crow::websocket::connection& conn){
         std::this_thread::sleep_for(std::chrono::milliseconds(2100));
     }
     conn.close();
+}
+
+// Credit: https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event
+// credit: https://stackoverflow.com/questions/11583562/how-to-kill-a-process-running-on-particular-port-in-linux
+// Close ffmpeg port on interrupt
+void signal_handler(int i)
+{
+    std::cout << "Caught signal " << i << std::endl;
+    close_port();
+    exit(1);
+}
+
+void close_port()
+{
+    if(execlp(FUSER_CMD, FUSER_CMD, CLOSE_PORT_CMD, (const char *) NULL) == -1){
+        std::cout << "Error: Launching ffmpeg failed\n";
+    }
 }

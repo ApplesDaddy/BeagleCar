@@ -2,13 +2,7 @@
 #include "crow_all.h"
 #include <signal.h>
 
-// Credit: https://stackoverflow.com/questions/1641182/how-can-i-catch-a-ctrl-c-event
-void signal_handler(int i)
-{
-    std::cout << "Caught signal " << i << std::endl;
-    system("fuser -k 12345/udp"); // Close ffmpeg udp connection
-    exit(1);
-}
+
 
 
 int main()
