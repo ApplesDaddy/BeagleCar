@@ -61,26 +61,97 @@ void add_routes(crow::SimpleApp& app){
 
     CROW_WEBSOCKET_ROUTE(app, "/ws_video")
     .onopen([&](crow::websocket::connection& conn){
-            CROW_LOG_INFO << "new websocket connection";
-            CROW_LOG_INFO << "ip address of new remote connection: " <<  conn.get_remote_ip();
+        CROW_LOG_INFO << "new websocket connection";
+        CROW_LOG_INFO << "ip address: " << conn.get_remote_ip();
 
+        /*
+        References
+            https://github.com/leandromoreira/ffmpeg-libav-tutorial/blob/master/2_remuxing.c
+            https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API/Transcoding_assets_for_MSE
+            https://ffmpeg.org/ffmpeg-protocols.html#udp
+            https://stackoverflow.com/questions/52303867/how-do-i-set-ffmpeg-pipe-output
+        */
+        std::string fflags = "-fflags +genpts+igndts+discardcorrupt";
+        std::string input_url = "-i \"udp://192.168.7.2:12345";
+        std::string input_url_opts = "?fifo_size=5000000&overrun_nonfatal=1\"";
+        std::string copy_flag = "-c:v copy";
+        std::string mov_flags = "-movflags frag_keyframe+empty_moov+default_base_moof";
+        std::string format_flag = "-f mp4";
+        std::string output_file = "pipe:1";
+        std::string ffmpeg_cmd = "ffmpeg " + fflags + " " + input_url + " " + input_url_opts + " " 
+        + copy_flag + " " + mov_flags + " " + format_flag + " " + output_file;
+    
+        // Credit: https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/pipes/pipe.cpp 
+        int status, p_id, pipe_fd[2]; 
+        status = pipe(pipe_fd); // pipe_fd := file descriptors 
+        if(status == -1){
+            std::cout << "Error: Could not create pipe\n";
+            exit(1);
+        }
 
-            // Start a thread to send the video data 
-            std::thread t(send_video_websocket_sample, std::ref(conn));
+        p_id = fork();
+        if(p_id == -1){
+            std::cout << "Error: Could not fork process\n";
+            exit(1);
+        } else if (p_id == 0) { // Child process: Write to pipe
+            close(pipe_fd[0]); // Close read end
+
+            /*
+            References: 
+                https://en.wikipedia.org/wiki/Redirection_(computing)
+                https://en.wikipedia.org/wiki/Dup_(system_call)
+                https://stackoverflow.com/questions/22367920/is-it-possible-that-linux-file-descriptor-0-1-2-not-for-stdin-stdout-and-stderr
+                https://en.wikipedia.org/wiki/File_descriptor
+                    
+            */
+            // redirect output from stdout to pipe
+            dup2(pipe_fd[1], STDOUT_FILENO);
+
+            // Write to pipe
+            // https://stackoverflow.com/questions/39873304/include-ffmpeg-command-in-c-program
+            // gave up trying to write remuxer using libav; ffmpeg system call instead
+            const char* ffmpeg_cmd_c = ffmpeg_cmd.c_str();
+            // ffmpeg child process of p0
+            if(system(ffmpeg_cmd_c) != 0){
+                std::cout << "Error: Launching ffmpeg failed\n";
+            }
+
+            close(pipe_fd[1]); // Close write end after writing
+            exit(0);
+        } else if (p_id == 1){
+            std::thread t(send_video_websocket, std::ref(conn), pipe_fd[0]);
             t.detach();
+        }
 
-            })
+        
+
+    })
+
     .onclose([&](crow::websocket::connection& conn, const std::string& reason, uint16_t){
             CROW_LOG_INFO << "websocket connection closed with the following reason: " << reason;
             CROW_LOG_INFO << "ip address of closinng remote connection: " <<  conn.get_remote_ip();
+            conn.close();
             });
 
+}
+
+void send_video_websocket(crow::websocket::connection& conn, int pipe_fd){
+            // Read from pipe and send to websocket
+            char data[600 * 1024]; // TODO: increase size bc higher resolution
+            size_t read_size;
+            while ((read_size = read(pipe_fd, data, sizeof(data))) > 0) {
+                conn.send_binary(std::string(data, read_size));  // Send binary data as a string
+                read_size = 0;
+                memset(data, 0, sizeof(data));
+            }
+            // Close read end
+            close(pipe_fd);
 }
 
 void send_video_websocket_sample(crow::websocket::connection& conn){
     for (int i = 0; i < 16; i++){
         char file_name[100];
-        sprintf(file_name, "video/output%03d.mp4", i);
+        sprintf(file_name, "output%03d.mp4", i);
 
         CROW_LOG_INFO << "Sending: " << file_name;
 

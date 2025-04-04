@@ -427,6 +427,5 @@ void VidStreamer::startOutputStream()
         av_frame_unref(inputFrame);
         av_packet_unref(inputPacket);
     }
-
     av_write_trailer(outputFormatContext);
 }
