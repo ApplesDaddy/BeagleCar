@@ -1,9 +1,18 @@
 #include "webServer/webServerBlueprints.h"
 #include "crow_all.h"
+#include <signal.h>
+
+void signal_handler(int i)
+{
+    std::cout << "Caught signal " << i << std::endl;
+    system("fuser -k 12345/udp"); // Close ffmpeg udp connection
+    exit(1);
+}
 
 
 int main()
 {
+    signal(SIGINT, signal_handler);
     crow::SimpleApp app; //define your crow application
 
     add_routes(app); //add the routes to the app

@@ -50,7 +50,7 @@ void test_video()
 {
     // open file
     // char* filename = "pic.mp4";
-    const char* filename = "udp://192.168.7.2:12345?fifo=size5000000&overrun_nonfatal=1";
+    const char* filename = "udp://192.168.7.2:12346?fifo=size5000000&overrun_nonfatal=1";
 
     // open file
     AVFormatContext * format = NULL;
@@ -110,8 +110,8 @@ void test_video()
 
 
     /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
-    uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
-    memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+    // uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
+    // memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
 
     // TODO: look into include error
