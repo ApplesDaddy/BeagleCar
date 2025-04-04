@@ -171,6 +171,15 @@ Everytime on re/boot:
 (target)$ sudo ip addr add 192.168.10.1/24 dev wlan0
 ```
 
+### Testing Connectivity
+Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcpd/dhcpd.leases` on the AP)
+```
+(device 1)$ ping (AP IP)
+(device 1)$ ping (device 2 IP)
+```
+**NOTE** pinging a device may not work if yu have firewalls. Pinging between BYAIs should work unless you've configured a firewall.
+
+
 ### Troubleshooting
 DHCP:
 - `service isc-dhcp-server status` to see dhcp status
