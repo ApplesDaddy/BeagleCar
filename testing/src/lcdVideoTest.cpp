@@ -50,7 +50,8 @@ void test_video()
 {
     // open file
     // char* filename = "pic.mp4";
-    const char* filename = "udp://192.168.7.2:12345?fifo=size5000000&overrun_nonfatal=1";
+    //const char* filename = "udp://192.168.7.2:12345?fifo=size5000000&overrun_nonfatal=1";
+    const char* filename = "udp://192.168.7.2:1234";
 
     // open file
     AVFormatContext * format = NULL;
