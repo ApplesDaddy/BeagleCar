@@ -19,10 +19,15 @@ int main(void) {
   Gpio_initialize();
   motor_init();
   rotaryEncoder_init();
+  rot_encoder_set_min_max(0, 100);
+  rot_encoder_set_step(1);
+  rot_encoder_set_counter(0);
+
 
   while (true) {
-    // Wait for the rotary encoder to be turned
-    sleepForMs(100); // Sleep for 100ms to avoid busy waiting
+    int val = rot_encoder_get_val();
+    motor_set_speed(val);
+    printf("Rotary Encoder Value: %d\n", val);
   }
 
   rotaryEncoder_cleanup();

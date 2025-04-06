@@ -20,8 +20,8 @@ target_link_libraries(hal LINK_PRIVATE gpiod) # May need to change to HAL lib.
 # (host) sudo apt-get install libavformat-dev
 # (host) sudo apt-get install libswscale-dev
 # (host) sudo apt-get install ffmpeg
-# find_library(AVCODEC_LIBRARY avcodec)
-# find_library(AVUTIL_LIBRARY avutil)
-# find_library(AVFORMAT_LIBRARY avformat)
-# find_library(SWSCALE_LIBRARY swscale)
-# target_link_libraries(hal LINK_PRIVATE ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
+find_library(AVCODEC_LIBRARY avcodec)
+find_library(AVUTIL_LIBRARY avutil)
+find_library(AVFORMAT_LIBRARY avformat)
+find_library(SWSCALE_LIBRARY swscale)
+target_link_libraries(hal LINK_PRIVATE ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
