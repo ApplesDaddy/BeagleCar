@@ -10,21 +10,31 @@ References
     https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API/Transcoding_assets_for_MSE
     https://ffmpeg.org/ffmpeg-protocols.html#udp
     https://stackoverflow.com/questions/52303867/how-do-i-set-ffmpeg-pipe-output
+    https://stackoverflow.com/questions/52396602/conversion-from-mjpeg-to-mp4-libx264-with-ffmpeg
 */
 #define FFMPEG_CMD "ffmpeg"
 #define FFLAGS "-fflags"
 #define FFLAGS_ARG  "+genpts+igndts+discardcorrupt"
 #define INPUT "-i"
 #define IP_ADDR "192.168.7.2"
-#define INPUT_URL_ARGS "?fifo_size=5000000&overrun_nonfatal=1"
+// Warning when trying to set buffer_size to ~8mb bc mjpeg packets are large; limited by OS
+#define INPUT_URL_ARGS "?buffer_size=7713000fifo_size=5000000&overrun_nonfatal=1"
 #define INPUT_URL "udp://" IP_ADDR ":" PORT INPUT_URL_ARGS
 #define COPY "-c:v"
-#define COPY_ARG "copy"
+#define COPY_ARG "libx264"
 #define MOVFLAG "-movflags"
 #define MOVFLAG_ARGS "frag_keyframe+empty_moov+default_base_moof"
 #define FORMAT "-f"
 #define FORMAT_ARG "mp4"
 #define OUTPUT "pipe:1"
+#define PIX_FMT "-pix_fmt"
+#define PIX_FMT_ARG "yuv420p"
+#define BITRATE "-b:v"
+#define BITRATE_ARG "4000k"
+#define TUNE "-tune"
+#define TUNE_ARG "zerolatency"
+#define PRESET "-preset"
+#define PRESET_ARG "ultrafast"
 
 int p_id, pipe_fd[2];
 
@@ -122,9 +132,9 @@ void add_routes(crow::SimpleApp& app){
             // https://stackoverflow.com/questions/39873304/include-ffmpeg-command-in-c-program
             // gave up trying to write remuxer using libav; ffmpeg system call instead
             // replaces the current process image with ffmpeg's process image
-            if(execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, 
-                COPY, COPY_ARG, MOVFLAG, MOVFLAG_ARGS, FORMAT, FORMAT_ARG, 
-                OUTPUT, (const char *) NULL) == -1){
+            if(execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, PIX_FMT, 
+                PIX_FMT_ARG, BITRATE, BITRATE_ARG, COPY, COPY_ARG, PRESET, PRESET_ARG,
+                TUNE, TUNE_ARG, MOVFLAG, MOVFLAG_ARGS, FORMAT, FORMAT_ARG, OUTPUT, (const char *) NULL) == -1){
                 std::cout << "Error: Launching ffmpeg failed\n";
             }
 
@@ -157,7 +167,7 @@ void add_routes(crow::SimpleApp& app){
 
 void send_video_websocket(crow::websocket::connection& conn, int pipe_fd){
             // Read from pipe and send to websocket
-            char data[600 * 1024]; // TODO: increase size bc higher resolution
+            char data[1024 * 1024]; // 1Mb buffer size
             size_t read_size;
             while ((read_size = read(pipe_fd, data, sizeof(data))) > 0) {
                 conn.send_binary(std::string(data, read_size));  // Send binary data as a string
@@ -209,6 +219,6 @@ void signal_handler(int i)
 void close_port()
 {
     if(execlp(FUSER_CMD, FUSER_CMD, CLOSE_PORT_CMD, (const char *) NULL) == -1){
-        std::cout << "Error: Launching ffmpeg failed\n";
+        std::cout << "Error: Closing udp port failed\n";
     }
 }

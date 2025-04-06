@@ -1,6 +1,12 @@
 #include "../../vidStreamer/include/vidStreamer/vidStreamer.h"
 #include <iostream>
 #include <string>
+#include <thread>
+
+void create_vid_streamer(std::string addr, std::string filename)
+{
+    VidStreamer streamer(addr, filename);
+}
 
 int main(int argc, char* argv[]){
     if(argc < 2){
@@ -18,8 +24,11 @@ int main(int argc, char* argv[]){
 
     // std::cout << "You have entered: " << filename << std::endl;
 
-    VidStreamer web_streamer(web_addr, argv[1]);
-    VidStreamer lcd_streamer(lcd_addr, argv[1]);
+    std::thread web_thread(create_vid_streamer, web_addr, filename);
+    std::thread lcd_thread(create_vid_streamer, lcd_addr, filename);
+
+    web_thread.join();
+    lcd_thread.join();
 
 
     return 0;
