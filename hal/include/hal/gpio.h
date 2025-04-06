@@ -36,6 +36,7 @@ void gpio_close(struct GpioLine* line);
 // @return number of events for 2 lines
 int gpio_wait_line_change(struct GpioLine* line1, struct GpioLine* line2,
     struct gpiod_line_bulk *bulk_events);
+int gpio_wait_line_change_singular(struct GpioLine* line1, struct gpiod_line_bulk *bulk_events);
 
 void gpio_set_input(struct GpioLine* line);
 int gpio_get_val(struct GpioLine* line);

@@ -1,6 +1,8 @@
 #include "hal/motor.h"
-#include "hal/gpioMotor.h"
-#include "hal/rotaryEncoderMotor.h"
+#include "hal/gpio.h"
+#include "hal/rotary_encoder.h"
+
+#include <stdbool.h>
 
 static void sleepForMs(long long delayInMs) {
   // Sleep for the specified number of milliseconds; From assignment 1
@@ -18,7 +20,7 @@ int main(void) {
   motor_init();
   rotaryEncoder_init();
 
-  while (!done) {
+  while (true) {
     // Wait for the rotary encoder to be turned
     sleepForMs(100); // Sleep for 100ms to avoid busy waiting
   }
