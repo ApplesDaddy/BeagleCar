@@ -32,7 +32,46 @@ static bool frame_thread_active = false;
 static atomic_bool stop_thread = false;
 static pthread_t frame_thread;
 
-#define CLIP(x) ( (x) > 255 ? 255 : (x) < 0 ? 0 : (x) )
+#define CLIP(x) ( (x) > 254 ? 254 : (x) < 0 ? 0 : (x) )
+#define FIX_THRESH_PECENT 0.03
+
+
+static int start_x = LCD_1IN54_WIDTH/2 - (LCD_1IN54_WIDTH * FIX_THRESH_PECENT);
+static int end_x = LCD_1IN54_WIDTH/2 + (LCD_1IN54_WIDTH * FIX_THRESH_PECENT);
+
+
+static inline void fix_artifacts(int orig_width, int orig_height, AVFrame* frame)
+{
+    float x_diff = (float)orig_width/(float)LCD_1IN54_WIDTH;
+    float y_diff = (float)orig_height/(float)LCD_1IN54_HEIGHT;
+
+    for(int i=start_x; i<=end_x; i++)
+    {
+        for(int j=0; j<LCD_1IN54_HEIGHT; j++)
+        {
+            int col = i * x_diff;
+            int row = j * y_diff;
+
+            uint8_t y = frame->data[0][frame->linesize[0] * row + col];
+            uint8_t u = frame->data[1][(int)(frame->linesize[1] * (row/2.0) + (col/2.0))];
+            uint8_t v = frame->data[2][(int)(frame->linesize[2] * (row/2.0) + (col/2.0))];
+
+            // convert to rgb
+            uint16_t r = (y + (1.40200 * (v - 128)));
+            uint16_t g = (y - (0.34414 * (u - 128)) - (0.71414 * (v - 128)));
+            uint16_t b = (y + (1.77200 * (u - 128)));
+
+            // prevent overflow/underflow
+            r = CLIP(r);
+            g = CLIP(g);
+            b = CLIP(b);
+
+            uint16_t data=RGB((r), (g), (b));
+            Paint_SetPixel(i, j, data);
+        }
+    }
+}
+
 void* frame_thread_func(void* args)
 {
     (void)args;
@@ -47,44 +86,47 @@ void* frame_thread_func(void* args)
         if(!dirty_frame) // should only be if we're quitting
         { pthread_mutex_unlock(&frame_lock); continue; }
 
+        // clear frame
+        Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
+        Paint_Clear(WHITE);
+
+        // fix area where artifacts occur
+        fix_artifacts(buffered_frame->width, buffered_frame->height, buffered_frame);
+
         // copy frame so main thread can queue a different frame
         // scale down to fit and store locally
         sws_scale(resize, buffered_frame->data, buffered_frame->linesize, 0, context_height,
                   queued_frame->data, queued_frame->linesize);
         dirty_frame = false;
-
         pthread_mutex_unlock(&frame_lock);
-
-
-        // display frame
-        Paint_NewImage(s_fb, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT, 0, WHITE, 16);
-        Paint_Clear(WHITE);
-
-        assert(isInitialized);
 
         int h = queued_frame->height < LCD_1IN54_HEIGHT? queued_frame->height : LCD_1IN54_HEIGHT;
         int w = queued_frame->width < LCD_1IN54_WIDTH? queued_frame->width : LCD_1IN54_WIDTH;
+
         for(int row = 0; row < h; row++)
         {
             for(int col = 0; col < w; col++)
             {
+                // ignore manual fix area
+                if(col == start_x) { col = end_x; continue; }
+
                 // source: https://stackoverflow.com/questions/23761786/using-ffplay-or-ffmpeg-how-can-i-get-a-pixels-rgb-value-in-a-frame
                 // get yuv value at pixel
-                int y = queued_frame->data[0][queued_frame->linesize[0] * row + col];
-                int u = queued_frame->data[1][(int)(queued_frame->linesize[1] * (row/2.0) + (col/2.0))];
-                int v = queued_frame->data[2][(int)(queued_frame->linesize[2] * (row/2.0) + (col/2.0))];
+                uint8_t y = queued_frame->data[0][queued_frame->linesize[0] * row + col];
+                uint8_t u = queued_frame->data[1][(int)(queued_frame->linesize[1] * (row/2.0) + (col/2.0))];
+                uint8_t v = queued_frame->data[2][(int)(queued_frame->linesize[2] * (row/2.0) + (col/2.0))];
 
                 // convert to rgb
-                int r = y + 1.402 * (v - 128);
-                int g = y - 0.344 * (u - 128) - 0.714 * (v - 128);
-                int b = y + 1.772 * (u - 128);
+                uint16_t r = y + 1.402 * (v - 128);
+                uint16_t g = y - 0.344 * (u - 128) - 0.714 * (v - 128);
+                uint16_t b = y + 1.772 * (u - 128);
 
                 // prevent overflow/underflow
                 r = CLIP(r);
                 g = CLIP(g);
                 b = CLIP(b);
 
-                int data=RGB((r), (g), (b));
+                uint16_t data=RGB((r), (g), (b));
                 Paint_SetPixel(col, row, data);
             }
         }
@@ -136,7 +178,8 @@ void lcd_video_init(AVCodecContext *context)
 
     // setup to resize image to fit lcd screen
     resize = sws_getContext(context->width, context->height, context->pix_fmt, LCD_1IN54_WIDTH,
-                            LCD_1IN54_HEIGHT, context->pix_fmt, SWS_SINC, NULL, NULL, NULL);
+                            LCD_1IN54_HEIGHT, context->pix_fmt,
+                            SWS_SINC | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND, NULL, NULL, NULL);
 
     // second frame for scaled image
     queued_frame = av_frame_alloc();

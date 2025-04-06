@@ -18,6 +18,6 @@ void lcd_cleanup();
 
 void lcd_show_message(char* message);
 void lcd_show_bmp(char* filename);
-void lcd_show_frame(AVFrame * frame);
+void lcd_show_frame(AVFrame * frame);   // make sure frame is in AV_PIX_FMT_YUYV422 format
 
 #endif
