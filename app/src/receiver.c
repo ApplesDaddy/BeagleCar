@@ -30,6 +30,7 @@ static void* listen_udp(void* args);
 // ========================================= public functions ======================================
 void recv_udp_init()
 {
+    printf("RECEIVER INITIALIZED\n");
     initialized = true;
     pthread_create(&udp_thread, NULL, &listen_udp, NULL);
 }
@@ -172,7 +173,7 @@ static void* listen_udp(void* args)
 
         // process input
         msg_rx[bytes_rx] = 0;
-        // printf("got msg: %s\n", msg_rx);
+        printf("got msg: %s\n", msg_rx);
         process_cmd(msg_rx, &remote);
     }
     while(!stop_thread);

@@ -1,9 +1,10 @@
 #ifndef _WEB_SERVER_BLUEPRINTS_H_
 #define _WEB_SERVER_BLUEPRINTS_H_
 #include "crow_all.h"
-#include "udp_constants.h"
+// #include "udp_constants.h"
 
-
+#define CONTROLLER_IP "192.168.7.2"
+#define WEBSERVER_UDP_PORT "12346"
 #define FUSER_CMD "fuser"
 #define CLOSE_PORT_CMD "-k " WEBSERVER_UDP_PORT "/udp" 
 

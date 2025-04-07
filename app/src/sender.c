@@ -76,7 +76,8 @@ static inline void setup_socket()
 {
     memset(&remote, 0, sizeof(remote));
     remote.sin_family = AF_INET;
-    remote.sin_addr.s_addr = inet_addr(RECV_IP);
+    // Note: when this was set to RECV_IP it didn't work for me
+    remote.sin_addr.s_addr = inet_addr(CONTROLLER_IP);
     remote.sin_port = htons(UDP_PORT);
 
     // bind
