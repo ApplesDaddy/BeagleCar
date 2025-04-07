@@ -1,5 +1,6 @@
 #include "receiver.h"
 #include "udp_constants.h"
+#include "hal/motor.h"
 
 #include <pthread.h>
 #include <arpa/inet.h>
@@ -9,6 +10,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
 
 
 static pthread_t udp_thread;
@@ -90,7 +92,8 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
             float y_val = atof(param);
 
-            // TODO: do something with this input
+            int new_spd = x_val * (encoder_val * SPEED_STEP);
+            motor_set_speed(abs(new_spd), new_spd < 0);
             printf("x: %f   y: %f\n", x_val, y_val);
         } break;
         case CODE_ENCODER_VAL:
@@ -101,7 +104,6 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
             int val = atoi(param);
 
-            // TODO: do something with this input
             printf("encoder: %d\n", val);
 
             // ack
@@ -112,6 +114,7 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
                 sendto(sock, msg_rx, strlen(msg_rx), 0, (struct sockaddr*)remote, sizeof(*remote));
 
                 curr_ack_timeout = max_ack_timeout;
+                encoder_val = val;
             }
             else { curr_ack_timeout--; }
 

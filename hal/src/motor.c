@@ -226,7 +226,7 @@ void motor_set_speed(int speed, bool reverse) {
   assert(speed >= 0 && speed <= 100);
 
   assert(enabled); // The motor should be on
-  if (current_speed == speed) {
+  if (current_speed == speed && reverse == current_reverse) {
     return; // No need to change the speed
   }
 
@@ -267,7 +267,7 @@ void motor_add_speed(int speed){
 
     // Validate the new speed
     assert(new_speed >= 0 && new_speed <= 100);
-    
+
     // Set the new speed
     motor_set_speed(new_speed, current_reverse);
 }

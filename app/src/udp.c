@@ -3,6 +3,7 @@
 #include "hal/joystick.h"
 #include "hal/rotary_encoder.h"
 #include "hal/gpio.h"
+#include "hal/motor.h"
 #include "util/common_funcs.h"
 
 #include <stdbool.h>
@@ -54,8 +55,14 @@ int main(int argc, char* argv[])
         if(!is_terminal_sender)
         {
             gpio_init();
+            motor_init();
             joystick_init();
             rot_encoder_init();
+
+            // set gears
+            rot_encoder_set_min_max(1, MAX_GEAR);
+            rot_encoder_set_counter(1);
+            rot_encoder_set_step(1);
         }
 
         send_udp_init(is_terminal_sender);
@@ -99,6 +106,7 @@ int main(int argc, char* argv[])
         {
             rot_encoder_cleanup();
             joystick_cleanup();
+            motor_cleanup();
             gpio_cleanup();
         }
     }
