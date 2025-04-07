@@ -9,12 +9,23 @@ TODO: In parallel,
     ?. Configure as AP?
 */
 #include "lcd_stream_recv.h"
+#include "webServer/webServerBlueprints.h"
+
+#define WEBSERVER_PORT 8080
 
 int main()
 {
+    // Start LCD thread
     lcdStreamRecv lcd;
-    while(1){
 
-    }
+    // Start webserver thread
+    crow::SimpleApp app; //define your crow application
+    add_routes(app); //add the routes to the app
+    //set the port, set the app to run on multiple threads, and run the app
+    app.port(WEBSERVER_PORT).multithreaded().run();
+
+    
+
+
     return 0;
 }

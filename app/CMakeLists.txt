@@ -28,6 +28,10 @@ find_package(Threads REQUIRED)
 target_link_libraries(controller LINK_PRIVATE Threads::Threads)
 target_link_libraries(controller PRIVATE m)
 
+# Webserver
+target_link_libraries(controller LINK_PRIVATE webServer)
+target_link_libraries(controller PRIVATE crow)
+
 # Copy executables to final location if compiling for target
 if(CMAKE_C_COMPILER STREQUAL "aarch64-linux-gnu-gcc")
     add_custom_command(TARGET controller POST_BUILD
@@ -36,3 +40,15 @@ if(CMAKE_C_COMPILER STREQUAL "aarch64-linux-gnu-gcc")
         "$ENV{HOME}/cmpt433/public/myApps/"
     COMMENT "Copying Controller ARM executable to public NFS directory")
 endif()
+
+add_custom_command(TARGET controller POST_BUILD
+COMMAND "${CMAKE_COMMAND}" -E copy_directory
+"${CMAKE_SOURCE_DIR}/webServer/src/templates"
+"${CMAKE_BINARY_DIR}/testing/templates"
+COMMENT "Copying templates to testing build folder")
+
+add_custom_command(TARGET controller POST_BUILD
+COMMAND "${CMAKE_COMMAND}" -E copy_directory
+"${CMAKE_SOURCE_DIR}/webServer/src/static"
+"${CMAKE_BINARY_DIR}/testing/static"
+COMMENT "Copying static to testing build folder")

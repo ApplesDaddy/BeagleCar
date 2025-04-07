@@ -1,4 +1,3 @@
-#include "crow_all.h"
 #include "webServer/webServerBlueprints.h"
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -16,10 +15,9 @@ References
 #define FFLAGS "-fflags"
 #define FFLAGS_ARG  "+genpts+igndts+discardcorrupt"
 #define INPUT "-i"
-#define IP_ADDR "192.168.7.2"
 // Warning when trying to set buffer_size to ~8mb bc mjpeg packets are large; limited by OS
 #define INPUT_URL_ARGS "?buffer_size=7713000fifo_size=5000000&overrun_nonfatal=1"
-#define INPUT_URL "udp://" IP_ADDR ":" PORT INPUT_URL_ARGS
+#define INPUT_URL "udp://" CONTROLLER_IP ":" WEBSERVER_UDP_PORT INPUT_URL_ARGS
 #define COPY "-c:v"
 #define COPY_ARG "libx264"
 #define MOVFLAG "-movflags"

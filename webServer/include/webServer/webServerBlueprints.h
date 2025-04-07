@@ -1,10 +1,11 @@
 #ifndef _WEB_SERVER_BLUEPRINTS_H_
 #define _WEB_SERVER_BLUEPRINTS_H_
 #include "crow_all.h"
+#include "udp_constants.h"
 
-#define PORT "12345"
+
 #define FUSER_CMD "fuser"
-#define CLOSE_PORT_CMD "-k " PORT "/udp" 
+#define CLOSE_PORT_CMD "-k " WEBSERVER_UDP_PORT "/udp" 
 
 void add_routes(crow::SimpleApp& app);
 void send_video_websocket_sample(crow::websocket::connection& conn);

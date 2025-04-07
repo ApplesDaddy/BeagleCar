@@ -12,6 +12,7 @@ set(FFMPEG_LIBRARIES
 )
 
 include_directories(${FFMPEG_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/app/include)
 
 add_library(webServer STATIC ${MY_SOURCES})
 
