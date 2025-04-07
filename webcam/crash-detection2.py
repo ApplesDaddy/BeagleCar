@@ -12,7 +12,7 @@ import argparse
 import sys
 import os
 
-video_driver_id = 3  
+video_driver_id = 3
 
 def color_change_detected(prev_avg, curr_avg, threshold=20.0):
     dist = np.linalg.norm(np.array(curr_avg[:3]) - np.array(prev_avg[:3]))
@@ -74,9 +74,11 @@ def main():
     buf_type = v4l2_buf_type(V4L2_BUF_TYPE_VIDEO_CAPTURE)
     fcntl.ioctl(vd, VIDIOC_STREAMON, buf_type)
 
-    UDP_IP = "192.168.7.2"
+    UDP_IP = "192.168.7.1"
     UDP_PORT = 12345
+    MESSAGE_PORT = 12346
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    message_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     output_dir = "frame_data"
     if not os.path.exists(output_dir):
@@ -120,6 +122,7 @@ def main():
                         if color_change_detected(prev_avg_color, curr_avg_color, threshold=20.0):
                             print("CRASH DETECTED!")
                             cv2.imwrite(os.path.join(output_dir, f"crash_frame_{frame_number}.jpg"), frame)
+                            message_sock.sendto(b'CRASH DETECTED!\n', (UDP_IP, MESSAGE_PORT))
                             # cooldown period 5 seconds
                             cooldown_end_time = now + 5
             # update previous avg colour

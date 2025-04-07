@@ -6,4 +6,8 @@ on beagle:
 
 on host:
 
-1) "python3 receiveUDP.py"
+on first terminal:
+    "python3 receiveUDP.py"
+
+on second terminal
+    nc -u -l -p 12346

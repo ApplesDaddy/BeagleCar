@@ -77,6 +77,8 @@ def main():
 
     UDP_IP = "192.168.7.2"
     UDP_PORT = 12345
+    MESSAGE_PORT = 12346
+    message_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     CHUNK_SIZE = 65000
 
@@ -182,6 +184,7 @@ def main():
                             # process crash event.
                             print("CRASH DETECTED!")
                             cv2.imwrite(os.path.join(output_dir, f"crash_frame_{frame_number}.jpg"), frame)
+                            message_sock.sendto(b'CRASH DETECTED!\n', (UDP_IP, MESSAGE_PORT))
                             # set a 5 second cooldown.
                             cooldown_end_time = now + 5
                             # reset moving average with current frame.
