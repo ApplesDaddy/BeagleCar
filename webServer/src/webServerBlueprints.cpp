@@ -171,8 +171,8 @@ void send_video_websocket(crow::websocket::connection& conn, int pipe_fd){
             size_t read_size;
             while ((read_size = read(pipe_fd, data, sizeof(data))) > 0) {
                 conn.send_binary(std::string(data, read_size));  // Send binary data as a string
-                read_size = 0;
-                memset(data, 0, sizeof(data));
+                // read_size = 0;
+                // memset(data, 0, sizeof(data));
             }
             // Close read end
             close(pipe_fd);
