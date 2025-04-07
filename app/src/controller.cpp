@@ -8,4 +8,13 @@ TODO: In parallel,
 
     ?. Configure as AP?
 */
+#include "lcd_stream_recv.h"
 
+int main()
+{
+    lcdStreamRecv lcd;
+    while(1){
+
+    }
+    return 0;
+}

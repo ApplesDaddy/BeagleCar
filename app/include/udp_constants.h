@@ -3,6 +3,9 @@
 
 
 #define UDP_PORT 12345
+#define WEBSERVER_UDP_PORT "12346"
+#define LCD_UDP_PORT "12347"
+
 #define MAX_UDP_LEN 1500
 
 #define CONTROLLER_IP "192.168.7.2"

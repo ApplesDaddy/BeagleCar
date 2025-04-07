@@ -43,67 +43,67 @@ static inline void handle_cmd_args(int argc, char* argv[])
 }
 
 
-int main(int argc, char* argv[])
-{
-    if(argc > 1)
-    { handle_cmd_args(argc, argv); }
+// int main(int argc, char* argv[])
+// {
+//     if(argc > 1)
+//     { handle_cmd_args(argc, argv); }
 
-    // initialize hardware only if there's hardware
-    if(is_sender)
-    {
-        if(!is_terminal_sender)
-        {
-            gpio_init();
-            joystick_init();
-            rot_encoder_init();
-        }
+//     // initialize hardware only if there's hardware
+//     if(is_sender)
+//     {
+//         if(!is_terminal_sender)
+//         {
+//             gpio_init();
+//             joystick_init();
+//             rot_encoder_init();
+//         }
 
-        send_udp_init(is_terminal_sender);
-    }
-    else
-    { recv_udp_init(); }
-
-
-    // listen for keypresses if sender, else sleep
-    if(is_sender)
-    {
-        initscr();
-        timeout(1000);
-    }
-
-    int curr_encoder = 0;
-    while(is_sender || recv_is_active())
-    {
-        if(is_sender)
-        {
-            // char input = getchar(); // alternative to ncurses (comment out ncurses part in CMakeLists)
-            char input = getch();
-            if(input == 'q') // quit
-            { break; }
-
-            if(is_terminal_sender)
-            { send_terminal_input(input, &curr_encoder); }
-        }
-        else
-        { sleep_ms(500); }
-    }
-    endwin();
+//         send_udp_init(is_terminal_sender);
+//     }
+//     else
+//     { recv_udp_init(); }
 
 
-    // cleanup hardware only if there's hardware
-    if(is_sender)
-    {
-        send_udp_cleanup();
+//     // listen for keypresses if sender, else sleep
+//     if(is_sender)
+//     {
+//         initscr();
+//         timeout(1000);
+//     }
 
-        if(!is_terminal_sender)
-        {
-            rot_encoder_cleanup();
-            joystick_cleanup();
-            gpio_cleanup();
-        }
-    }
-    else
-    { recv_udp_cleanup(); }
+//     int curr_encoder = 0;
+//     while(is_sender || recv_is_active())
+//     {
+//         if(is_sender)
+//         {
+//             // char input = getchar(); // alternative to ncurses (comment out ncurses part in CMakeLists)
+//             char input = getch();
+//             if(input == 'q') // quit
+//             { break; }
 
-    return 0;
-}
+//             if(is_terminal_sender)
+//             { send_terminal_input(input, &curr_encoder); }
+//         }
+//         else
+//         { sleep_ms(500); }
+//     }
+//     endwin();
+
+
+//     // cleanup hardware only if there's hardware
+//     if(is_sender)
+//     {
+//         send_udp_cleanup();
+
+//         if(!is_terminal_sender)
+//         {
+//             rot_encoder_cleanup();
+//             joystick_cleanup();
+//             gpio_cleanup();
+//         }
+//     }
+//     else
+//     { recv_udp_cleanup(); }
+
+//     return 0;
+// }

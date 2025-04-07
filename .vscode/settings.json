@@ -69,6 +69,7 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "lcd_stream_recv.cpp": "c"
     }
 }
