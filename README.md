@@ -2,15 +2,27 @@
 Term project for CMPT433
 
 Equipment:
+- BeagleBone Y-AI
+- Logitech C270 720p webcam
 
-BeagleBone Y-AI
-Logitech C270 720p webcam
 
-
+Contents:
+- [Dependencies](#dependencies)
+  - [webServer](#webserver)
+  - [webcam](#webcam)
+  - [lcd/video streaming](#lcdvideo-streaming)
+  - [udp terminal send testing](#udp-terminal-send-testing)
+- [Wi-Fi Setup](#wi-fi-setup)
+  - [Client](#client)
+  - [AP](#ap)
+- [WebServer](#web-server)
+- [Manually Running CMake](#manually-running-cmake)
+- [LCD config](#lcd-config)
+- [udp program](#udp-program)
 
 
 ### Dependencies
-- webServer
+#### webServer
     - g++ for compiling C++ and cross compiling
     ```bash
     (host)$ sudo apt install g++
@@ -21,7 +33,7 @@ Logitech C270 720p webcam
     (host)$ sudo apt install ffmpeg
     (byai)$ sudo apt install ffmpeg
     ```
-- webcam
+#### webcam
     1) openCV
     ```bash
     (target)$ sudo apt-get install libv4l-dev
@@ -61,7 +73,7 @@ Logitech C270 720p webcam
     ‘udp://@:1234’, and click the play button. Then, the VLC will show the video
     stream.
 
-- lcd/video streaming
+#### lcd/video streaming
     ```sh
         (host) sudo apt-get install libavcodec-dev
         (host) sudo apt-get install libavformat-dev
@@ -72,7 +84,7 @@ Logitech C270 720p webcam
         (target)$ sudo apt install liblgpio-dev
     ```
 
-- udp terminal send testing
+#### udp terminal send testing
     ```sh
         (host) sudo apt-get install libncurses5-dev
     ```
@@ -123,6 +135,127 @@ Logitech C270 720p webcam
     (host)$ sudo apt-get install pkg-config
     (target)$ sudo apt-get install pkg-config
     ``` -->
+
+
+## Wi-Fi setup
+### Client
+#### Method 1 (wpa_supplicant):
+```
+(target)$ sudo apt-get install wpasupplicant
+```
+set `/etc/wpa_supplicant/wpa_supplicant.conf` to (update ssid and password):
+```
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=US
+network={
+ssid="wifi_ssid"
+psk="wifi_password"
+}
+```
+Everytime on reboot/boot:
+```sh
+(target)$ sudo killall wpa_supplicant
+(target)$ sudo wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+(target)$ sudo dhclient wlan0
+(target)$ sudo ifconfig wlan0 up
+```
+
+#### Method 2 (Network Manager):
+Doesnt seem to give wlan0 an address. Unsure if this will cause issues
+```sh
+(target)$ sudo apt-get install network-manager
+(target)$ sudo nmcli d wifi connect wifi_ssid password wifi_password
+```
+
+### AP
+
+```sh
+(target)$ sudo apt-get install hostapd
+(target)$ sudo apt-get install isc-dhcp-server
+```
+uncomment and set in `/etc/default/hostapd`:
+```
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+```
+set `/etc/hostapd/hostapd.conf` to (update ssid and wpa_passphrase):
+```
+interface=wlan0
+channel=6
+ieee80211n=1
+hw_mode=g
+ssid=TEST
+wpa=2
+wpa_passphrase=testing123
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_pairwise=TKIP
+auth_algs=1
+```
+
+add to `/etc/dhcp/dhcpd.conf` (make sure static wlan0 IP matches routers/subnet):
+```sh
+ddns-update-style none;
+authoritative;
+
+subnet 192.168.10.0 netmask 255.255.255.0 {
+    range 192.168.10.5 192.168.10.8;
+    option routers 192.168.10.1;
+    option subnet-mask 255.255.255.0;
+}
+```
+To increase lease time (seconds), adjust `default-lease-time` and `max-lease-time`.
+
+To increase number of clients that can connect at once, change `range`
+
+Everytime on re/boot:
+```sh
+# start access point
+(target)$ sudo /etc/init.d/hostapd start
+# start dns server
+(target)$ sudo service isc-dhcp-server start
+# set wlan0 static ip
+(target)$ sudo ip addr add 192.168.10.1/24 dev wlan0
+```
+
+### Testing Connectivity
+Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcpd/dhcpd.leases` on the AP)
+```
+(device 1)$ ping (AP IP)
+(device 1)$ ping (device 2 IP)
+```
+**NOTE** pinging a device may not work if yu have firewalls. Pinging between BYAIs should work unless you've configured a firewall.
+
+
+### Troubleshooting
+DHCP:
+- `service isc-dhcp-server status` to see dhcp status
+- `service isc-dhcp-server stop` to stop dhcp
+- `dhcpd -t -cf /etc/dhcp/dhcpd.conf` to check dhcp config file has no issues
+
+hostapd/AP config:
+- `sudo iw list` to check that hardware supports AP interface mode
+- `sudo rfkill list` to check if Wi-fi is blocked
+- `sudo rfkill unblock device_name_from_rfkill_list` to unblock soft block
+- `sudo service network-manager restart`
+- `sudo hostapd -d /etc/hostapd/hostapd.conf` to see errors from hostapd when starting it
+- make sure hostapd is stopped before starting it:
+```sh
+ps ax | grep hostapd
+# if the previous command outputted something:
+sudo /etc/init.d/hostapd stop
+```
+- restart wi-fi
+```sh
+sudo nmcli radio wifi off
+sudo nmcli radio wifi on
+```
+General Networking:
+- `ifconfig` to check correct IP address and wlan0 is up
+- `route -n` to check routing rules
+- `sudo iptables -L` to check firewall
+- `sudo tcpdump -i wlan0` to check packets on interface
+
 
 ### Web Server
 - You can run the example server after building by doing the following:
