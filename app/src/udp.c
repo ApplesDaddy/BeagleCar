@@ -3,6 +3,7 @@
 #include "hal/joystick.h"
 #include "hal/rotary_encoder.h"
 #include "hal/gpio.h"
+#include "hal/motor.h"
 #include "util/common_funcs.h"
 
 #include <stdbool.h>
@@ -56,12 +57,21 @@ int main(int argc, char* argv[])
             gpio_init();
             joystick_init();
             rot_encoder_init();
+
+            // set gears
+            rot_encoder_set_min_max(1, MAX_GEAR);
+            rot_encoder_set_counter(1);
+            rot_encoder_set_step(1);
         }
 
         send_udp_init(is_terminal_sender);
     }
     else
-    { recv_udp_init(); }
+    {
+        gpio_init();
+        motor_init();
+        recv_udp_init();
+    }
 
 
     // listen for keypresses if sender, else sleep
@@ -103,7 +113,11 @@ int main(int argc, char* argv[])
         }
     }
     else
-    { recv_udp_cleanup(); }
+    {
+            motor_cleanup();
+            gpio_cleanup();
+            recv_udp_cleanup();
+    }
 
     return 0;
 }
