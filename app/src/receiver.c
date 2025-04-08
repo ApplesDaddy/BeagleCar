@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <hal/motor.h>
 
 
 static pthread_t udp_thread;
@@ -93,6 +94,15 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
             // TODO: do something with this input
             printf("x: %f   y: %f\n", x_val, y_val);
+            int speed = (x_val) * 100;
+            if (speed > 100){
+                speed = 99; 
+            }
+            if (speed < 0){
+                speed =1;
+            }
+            printf("speed: %d\n", speed);
+            motor_set_speed(speed, false);
         } break;
         case CODE_ENCODER_VAL:
         {

@@ -1,3 +1,5 @@
+sudo rm /var/lib/dhcp/dhcpd.leases
+
 # start access point
 sudo /etc/init.d/hostapd start
 

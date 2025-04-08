@@ -1,3 +1,11 @@
+# For the webServerTest executable
+add_executable(motorTest src/motorTest.c)
+target_link_libraries(motorTest LINK_PRIVATE hal)
+add_custom_command(TARGET motorTest POST_BUILD
+COMMAND "${CMAKE_COMMAND}" -E copy
+"$<TARGET_FILE:motorTest>"
+"~/cmpt433/public/motorTest"
+COMMENT "Copying motorTest to public folder")
 
 # For the webServerTest executable
 add_executable(webServerTest src/webServerTest.cpp)

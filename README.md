@@ -144,8 +144,8 @@ ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=US
 network={
-ssid="wifi_ssid"
-psk="wifi_password"
+ssid="TEST"
+psk="testing123"
 }
 ```
 Everytime on reboot/boot:
@@ -171,7 +171,7 @@ Doesnt seem to give wlan0 an address. Unsure if this will cause issues
 ```
 uncomment and set in `/etc/default/hostapd`:
 ```
-DAEMON_CONF="/etc/hostapd/hostapd.conf"
+DAEMON_CONF="/etc/hostapd/  .conf"
 ```
 set `/etc/hostapd/hostapd.conf` to (update ssid and wpa_passphrase):
 ```
@@ -394,3 +394,10 @@ If you want to run the terminal sender without ncurses:
 - comment out the dependency in `app/CMakeLists.txt`
 
 Sender/receiver IP addresses can be changed in `app/include/udp_constants.h`
+
+
+
+## Motor and Servo Control
+ - The motor expects a 71hz signal with the duty cycle for neutral being 1549us, full reverse being 1296us and full forward being 1789us. ![motor signal](./images/oscilli_motor.jpg "motor signal")
+ - The servo expects 50hz though may accept outside of those bounds and goes from 1ms to 2ms from one side to the other. 
+ - Both require a pwm signal. Currently the motor uses gpiopin 15 which is the right most uart pin when the uart header is on the top left of the board when looked at from above.
