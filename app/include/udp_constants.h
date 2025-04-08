@@ -8,13 +8,15 @@
 
 #define MAX_UDP_LEN 1500
 
-#define CONTROLLER_IP "192.168.7.2"
-#define RECV_IP "192.168.7.1"
+#define CONTROLLER_IP "192.168.10.1"
+// #define RECV_IP "192.168.10.104"
 
-#define JOYSTICK_ANGLE  // undef to send raw x, y values ([-1.0, 1.0]) instead of angle + radius
+// #define JOYSTICK_ANGLE  // undef to send raw x, y values ([-1.0, 1.0]) instead of angle + radius
 
 #define SEND_INTERVAL_MS 100    // send hardware (joystick) inputs every n ms
 #define LISTEN_TIMEOUT_MS 100   // used to prevent recv_from() from blocking shutdown
+
+extern char* RECV_IP;
 
 
 enum UDP_MSG_CODES

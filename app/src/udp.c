@@ -4,6 +4,7 @@
 #include "hal/rotary_encoder.h"
 #include "hal/gpio.h"
 #include "util/common_funcs.h"
+#include "udp_constants.h"
 
 #include <stdbool.h>
 #include <pthread.h>
@@ -15,22 +16,25 @@
 
 static bool is_sender = false;
 static bool is_terminal_sender = false;
+char* RECV_IP; // global var used by sender.c
 
 
 static inline void handle_cmd_args(int argc, char* argv[])
 {
-    if(strcmp(argv[1], "--sender") == 0)
-    { is_sender = true; }
-    if(strcmp(argv[1], "--terminal") == 0)
-    { is_terminal_sender = true; }
-
     if(argc >= 3 && strcmp(argv[2], "--sender") == 0)
     { is_sender = true; }
     if(argc >= 3 && strcmp(argv[2], "--terminal") == 0)
     { is_terminal_sender = true; }
 
+    if(argc >= 4 && strcmp(argv[3], "--sender") == 0)
+    { is_sender = true; }
+    if(argc >= 4 && strcmp(argv[3], "--terminal") == 0)
+    { is_terminal_sender = true; }
+
     if(strcmp(argv[1], "--help") == 0)
     {
+        printf("Usage: udp <other IP address> [--sender] [--terminal]\n");
+
         printf("Options:\n");
         printf("\t--sender\t");
         printf("configure program to send joystick/encoder values to receiver\n");
@@ -40,6 +44,9 @@ static inline void handle_cmd_args(int argc, char* argv[])
         printf("enter q to stop\n");
         exit(EXIT_SUCCESS);
     }
+
+    RECV_IP = malloc(sizeof(char)*16);
+    strncpy(RECV_IP, argv[1], 16);
 }
 
 

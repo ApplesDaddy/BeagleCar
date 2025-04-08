@@ -65,13 +65,13 @@ if(CMAKE_C_COMPILER STREQUAL "aarch64-linux-gnu-gcc")
     COMMAND "${CMAKE_COMMAND}" -E copy
         "${CMAKE_SOURCE_DIR}/wifi_config_files/wifi_ap.sh"
         "$ENV{HOME}/cmpt433/public/myApps/"
-    COMMENT "Copying UDP ARM executable to public NFS directory")
+    COMMENT "Copying wifi ap script to public NFS directory")
 
     add_custom_command(TARGET udp POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy
         "${CMAKE_SOURCE_DIR}/wifi_config_files/wifi_client.sh"
         "$ENV{HOME}/cmpt433/public/myApps/"
-    COMMENT "Copying UDP ARM executable to public NFS directory")
+    COMMENT "Copying wifi client script to public NFS directory")
 endif()
 
 add_custom_command(TARGET controller POST_BUILD
