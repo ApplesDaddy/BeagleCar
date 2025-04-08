@@ -97,7 +97,8 @@ static void set_clkwise(void)
 static void handle_1_to_0(void)
 {
     if(!clkwise)
-    {
+    {   
+        // Left turn
         counter -= step;
         counter = counter < min_counter? min_counter : counter;
     }
@@ -106,6 +107,7 @@ static void handle_3_to_0(void)
 {
     if(clkwise)
     {
+        // Right turn
         counter += step;
         counter = counter > max_counter? max_counter : counter;
     }

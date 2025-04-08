@@ -10,6 +10,9 @@ add_library(hal STATIC ${MY_SOURCES})
 target_include_directories(hal PUBLIC include)
 target_link_libraries(hal LINK_PRIVATE lcd)
 target_link_libraries(hal LINK_PRIVATE util)
+find_library(GPIOD_LIBRARY gpiod)       # UNSURE IF NEEDED
+target_link_libraries(hal LINK_PRIVATE gpiod) # May need to change to HAL lib.
+
 
 
 # (host) sudo apt-get install libutil-dev
