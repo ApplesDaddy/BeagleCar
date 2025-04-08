@@ -13,8 +13,8 @@ target_link_libraries(webServerTest LINK_PRIVATE webServer)
 target_link_libraries(webServerTest PRIVATE crow)
 
 add_custom_command(TARGET webServerTest POST_BUILD
-COMMAND "${CMAKE_COMMAND}" -E copy
-"$<TARGET_FILE:webServerTest>"
+COMMAND "${CMAKE_COMMAND}" -E copy 
+"$<TARGET_FILE:webServerTest>" 
 "~/cmpt433/public/webServerTest"
 COMMENT "Copying webServerTest to public folder")
 
@@ -53,3 +53,13 @@ add_custom_command(TARGET lcd_video_test POST_BUILD
      "~/cmpt433/public/myApps/lcd_video_test"
   COMMENT "Copying lcd_video_test executable to public NFS directory")
 
+
+# For the vidStreamer executable
+add_executable(vidStreamerTest src/vidStreamerTest.cpp)
+target_link_libraries(vidStreamerTest LINK_PRIVATE vidStreamer)
+
+add_custom_command(TARGET vidStreamerTest POST_BUILD 
+COMMAND "${CMAKE_COMMAND}" -E copy
+"$<TARGET_FILE:vidStreamerTest>"
+"~/cmpt433/public/vidStreamerTest"
+COMMENT "Copying vidStreamerTest to public folder")

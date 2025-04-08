@@ -16,7 +16,10 @@ extern "C"
     #include "hal/lcd.h"
 }
 #define INBUF_SIZE 4096
-
+#define IP_ADDR "192.168.7.2"
+#define PORT "12346"
+#define INPUT_URL_ARGS "?fifo_size=5000000&overrun_nonfatal=1"
+#define INPUT_URL "udp://" IP_ADDR ":" PORT INPUT_URL_ARGS
 
 // source: https://ffmpeg.org/doxygen/4.2/decode_video_8c-example.html
 static void decode(AVCodecContext *dec_ctx, AVFrame *frame, AVPacket *pkt, int stream_idx)
@@ -50,12 +53,11 @@ void test_video()
 {
     // open file
     // char* filename = "pic.mp4";
-    //const char* filename = "udp://192.168.7.2:12345?fifo=size5000000&overrun_nonfatal=1";
-    const char* filename = "udp://192.168.7.2:1234";
+    // const char* filename = "udp://192.168.7.2:12346?fifo=size5000000&overrun_nonfatal=1";
 
     // open file
     AVFormatContext * format = NULL;
-    if ( avformat_open_input( & format, filename, NULL, NULL ) != 0 )
+    if ( avformat_open_input( & format, INPUT_URL, NULL, NULL ) != 0 )
     {
         fprintf(stderr, "Could not get format context\n");
         exit(1);
@@ -111,8 +113,8 @@ void test_video()
 
 
     /* set end of buffer to 0 (this ensures that no overreading happens for damaged MPEG streams) */
-    uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
-    memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+    // uint8_t inbuf[INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE];
+    // memset(inbuf + INBUF_SIZE, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
 
     // TODO: look into include error

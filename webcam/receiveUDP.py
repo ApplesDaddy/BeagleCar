@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 UDP_IP = "192.168.7.1"
-UDP_PORT = 1234
+UDP_PORT = 12345
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))

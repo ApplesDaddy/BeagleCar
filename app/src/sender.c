@@ -76,7 +76,9 @@ static inline void setup_socket()
 {
     memset(&remote, 0, sizeof(remote));
     remote.sin_family = AF_INET;
+    printf("Sending to %s\n", RECV_IP);
     remote.sin_addr.s_addr = inet_addr(RECV_IP);
+    free(RECV_IP); // dont need anymore
     remote.sin_port = htons(UDP_PORT);
 
     // bind
@@ -207,7 +209,7 @@ void send_terminal_input(char input, int* curr_encoder)
             #ifdef JOYSTICK_ANGLE
                 snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 0, 1);
             #else
-                snprintf(msg_rx, MAX_UDP_LEN, "%d %f %f", CODE_JOYSTICK_VAL, 0, 1);
+                snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 0, 1);
             #endif
         } break;
         case 's':
@@ -215,7 +217,7 @@ void send_terminal_input(char input, int* curr_encoder)
             #ifdef JOYSTICK_ANGLE
                 snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 180, 1);
             #else
-                snprintf(msg_rx, MAX_UDP_LEN, "%d %f %f", CODE_JOYSTICK_VAL, 0, -1);
+                snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 0, -1);
             #endif
         } break;
         case 'd':
@@ -223,7 +225,7 @@ void send_terminal_input(char input, int* curr_encoder)
             #ifdef JOYSTICK_ANGLE
                 snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 90, 1);
             #else
-                snprintf(msg_rx, MAX_UDP_LEN, "%d %f %f", CODE_JOYSTICK_VAL, 1, 0);
+                snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 1, 0);
             #endif
         } break;
         case 'a':
@@ -231,7 +233,7 @@ void send_terminal_input(char input, int* curr_encoder)
             #ifdef JOYSTICK_ANGLE
                 snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, 270, 1);
             #else
-                snprintf(msg_rx, MAX_UDP_LEN, "%d %f %f", CODE_JOYSTICK_VAL, -1, 0);
+                snprintf(msg_rx, MAX_UDP_LEN, "%d %d %d", CODE_JOYSTICK_VAL, -1, 0);
             #endif
         } break;
         // encoder
