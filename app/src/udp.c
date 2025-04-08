@@ -55,7 +55,6 @@ int main(int argc, char* argv[])
         if(!is_terminal_sender)
         {
             gpio_init();
-            motor_init();
             joystick_init();
             rot_encoder_init();
 
@@ -68,7 +67,11 @@ int main(int argc, char* argv[])
         send_udp_init(is_terminal_sender);
     }
     else
-    { recv_udp_init(); }
+    {
+        gpio_init();
+        motor_init();
+        recv_udp_init();
+    }
 
 
     // listen for keypresses if sender, else sleep
@@ -106,12 +109,15 @@ int main(int argc, char* argv[])
         {
             rot_encoder_cleanup();
             joystick_cleanup();
-            motor_cleanup();
             gpio_cleanup();
         }
     }
     else
-    { recv_udp_cleanup(); }
+    {
+            motor_cleanup();
+            gpio_cleanup();
+            recv_udp_cleanup();
+    }
 
     return 0;
 }
