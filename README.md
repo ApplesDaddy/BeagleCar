@@ -102,8 +102,8 @@ ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=US
 network={
-ssid="wifi_ssid"
-psk="wifi_password"
+ssid="TEST"
+psk="testing123"
 }
 ```
 Everytime on reboot/boot:
@@ -129,7 +129,7 @@ Doesnt seem to give wlan0 an address. Unsure if this will cause issues
 ```
 uncomment and set in `/etc/default/hostapd`:
 ```
-DAEMON_CONF="/etc/hostapd/hostapd.conf"
+DAEMON_CONF="/etc/hostapd/  .conf"
 ```
 set `/etc/hostapd/hostapd.conf` to (update ssid and wpa_passphrase):
 ```
