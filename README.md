@@ -92,7 +92,7 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
     (target)$ sudo apt-get install ffmpeg
     ```
     Troubleshooting:
-    - If the update command fails, it can prevent installation of necessary dependencies. 
+    - If the update command fails, it can prevent installation of necessary dependencies.
     To fix this, ensure the system time is correct
     ```bash
     # Check system time
@@ -203,6 +203,12 @@ To increase lease time (seconds), adjust `default-lease-time` and `max-lease-tim
 
 To increase number of clients that can connect at once, change `range`
 
+Uncomment and set in `/etc/default/isc-dhcp-server`:
+```sh
+DHCPDv4_CONF=/etc/dhcp/dhcpd.conf
+INTERFACESv4="wlan0"
+```
+
 Everytime on re/boot:
 ```sh
 # start access point
@@ -227,6 +233,7 @@ DHCP:
 - `service isc-dhcp-server status` to see dhcp status
 - `service isc-dhcp-server stop` to stop dhcp
 - `dhcpd -t -cf /etc/dhcp/dhcpd.conf` to check dhcp config file has no issues
+- [ISC DHCP server setup tutorial](https://www.cyberciti.biz/faq/howto-ubuntu-debian-squeeze-dhcp-server-setup-tutorial/)
 
 hostapd/AP config:
 - `sudo iw list` to check that hardware supports AP interface mode
@@ -245,6 +252,8 @@ sudo /etc/init.d/hostapd stop
 sudo nmcli radio wifi off
 sudo nmcli radio wifi on
 ```
+- [AP config with hostapd tutorial](https://www.cyberciti.biz/faq/debian-ubuntu-linux-setting-wireless-access-point/)
+
 General Networking:
 - `ifconfig` to check correct IP address and wlan0 is up
 - `route -n` to check routing rules
