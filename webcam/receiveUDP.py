@@ -1,5 +1,6 @@
 #https://github.com/wms2537/python-udp-mjpeg-server/blob/main/udp_stream.py
 
+#used in place of vlc, if needed to view stream
 
 import socket
 import cv2

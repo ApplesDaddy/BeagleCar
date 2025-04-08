@@ -4,6 +4,20 @@ on beagle:
 2) pip install opencv-python
 3) `python3 crash-detection2.py`
 
+    (crash-detection2 logic: if the average colour of the bottom half of frame(n-1) 
+                             is different from frame(n)'s, detect crash. 5 sec 
+                             cooldown)
+
+OR
+
+4) `python3 crash-detection3.py`
+
+    (crash-detection3 logic: populate moving average with the average colour of the bottom
+                             half of frames for 5 seconds. then, if 5 consecutive frames deviate from the moving average, detect crash. 5 sec cooldown)
+
+
+
+
 on host:
 on first terminal:
     `python3 receiveUDP.py`
