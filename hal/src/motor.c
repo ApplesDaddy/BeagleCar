@@ -125,7 +125,7 @@ static void enable_motor() {
     perror("Error closing enable file");
     exit(EXIT_FAILURE);
   }
-
+  
   if (on == 1) {
     // The Motor is already on
     return;

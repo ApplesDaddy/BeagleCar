@@ -17,7 +17,7 @@
 
 static bool is_sender = false;
 static bool is_terminal_sender = false;
-char* RECV_IP; // global var used by sender.c
+static char* RECV_IP; // global var used by sender.c
 
 static inline void handle_cmd_args(int argc, char *argv[])
 {
