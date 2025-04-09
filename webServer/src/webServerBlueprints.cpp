@@ -16,12 +16,12 @@ References
 #define FFLAGS_ARG  "+genpts+igndts+discardcorrupt"
 #define INPUT "-i"
 // Warning when trying to set buffer_size to ~8mb bc mjpeg packets are large; limited by OS
-#define INPUT_URL_ARGS "?buffer_size=7713000fifo_size=5000000&overrun_nonfatal=1"
+#define INPUT_URL_ARGS "?buffer_size=7713000&fifo_size=5000000&overrun_nonfatal=1"
 #define INPUT_URL "udp://" CONTROLLER_IP ":" WEBSERVER_UDP_PORT INPUT_URL_ARGS
 #define COPY "-c:v"
 #define COPY_ARG "libx264"
 #define MOVFLAG "-movflags"
-#define MOVFLAG_ARGS "frag_keyframe+empty_moov+default_base_moof"
+#define MOVFLAG_ARGS "frag_keyframe+empty_moov+default_base_moof+separate_moof"
 #define FORMAT "-f"
 #define FORMAT_ARG "mp4"
 #define OUTPUT "pipe:1"
@@ -38,7 +38,7 @@ int p_id, pipe_fd[2];
 
 // Example from: https://crowcpp.org/master/getting_started/your_first_application/
 void add_routes(crow::SimpleApp& app){
-    
+
     //define your endpoint at the root directory
     CROW_ROUTE(app, "/")([](){
         return "Hello world";
@@ -67,12 +67,12 @@ void add_routes(crow::SimpleApp& app){
     //Return a template from a file
     CROW_ROUTE(app, "/load_file")([](){
         auto page = crow::mustache::load_text("template_page.html");
-        
+
         return page;
     });
 
     // From: https://crowcpp.org/master/guides/websockets/
-    // Only prints out to the console for now. To get a 
+    // Only prints out to the console for now. To get a
     // connection go to /static/websocket_page.html
     CROW_WEBSOCKET_ROUTE(app, "/ws")
     .onopen([&](crow::websocket::connection& conn){
@@ -98,11 +98,11 @@ void add_routes(crow::SimpleApp& app){
         CROW_LOG_INFO << "new websocket connection";
         CROW_LOG_INFO << "ip address: " << conn.get_remote_ip();
 
-    
-        int status; 
 
-        // Credit: https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/pipes/pipe.cpp 
-        status = pipe(pipe_fd); // pipe_fd := file descriptors 
+        int status;
+
+        // Credit: https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/pipes/pipe.cpp
+        status = pipe(pipe_fd); // pipe_fd := file descriptors
         if(status == -1){
             std::cout << "Error: Could not create pipe\n";
             exit(1);
@@ -116,12 +116,12 @@ void add_routes(crow::SimpleApp& app){
             close(pipe_fd[0]); // Close read end
 
             /*
-            References: 
+            References:
                 https://en.wikipedia.org/wiki/Redirection_(computing)
                 https://en.wikipedia.org/wiki/Dup_(system_call)
                 https://stackoverflow.com/questions/22367920/is-it-possible-that-linux-file-descriptor-0-1-2-not-for-stdin-stdout-and-stderr
                 https://en.wikipedia.org/wiki/File_descriptor
-                    
+
             */
             // redirect output from stdout to pipe
             dup2(pipe_fd[1], STDOUT_FILENO);
@@ -130,8 +130,11 @@ void add_routes(crow::SimpleApp& app){
             // https://stackoverflow.com/questions/39873304/include-ffmpeg-command-in-c-program
             // gave up trying to write remuxer using libav; ffmpeg system call instead
             // replaces the current process image with ffmpeg's process image
-            if(execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, PIX_FMT, 
+            if(execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, PIX_FMT,
                 PIX_FMT_ARG, BITRATE, BITRATE_ARG, COPY, COPY_ARG, PRESET, PRESET_ARG,
+                "-g", "15",
+                "-force_key_frames", "expr:gte(t,n_forced*0.5)",
+                "-frag_duration", "500000",
                 TUNE, TUNE_ARG, MOVFLAG, MOVFLAG_ARGS, FORMAT, FORMAT_ARG, OUTPUT, (const char *) NULL) == -1){
                 std::cout << "Error: Launching ffmpeg failed\n";
             }
