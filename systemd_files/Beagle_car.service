@@ -1,0 +1,11 @@
+[Unit]
+Description=Service for running the Beagle car code on poweron.
+After=network.target
+
+[Service]
+ExecStart=#TODO
+User=root
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
