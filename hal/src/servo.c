@@ -1,4 +1,4 @@
-#include "hal/motor.h"
+#include "hal/servo.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,16 +11,14 @@ static bool enabled = false;
 // We are using gpio pin 15 for the pwm output which is attached to uart pin
 // on the right side when the uart pin group is top left when looking at the
 // board from the top.
-#define MOTOR_ENABLE_FILE "/dev/hat/pwm/GPIO15/enable"
-#define MOTOR_DUTY_CYCLE_FILE "/dev/hat/pwm/GPIO15/duty_cycle"
-#define MOTOR_PERIOD_FILE "/dev/hat/pwm/GPIO15/period"
+#define SERVO_ENABLE_FILE "/dev/hat/pwm/GPIO14/enable"
+#define SERVO_DUTY_CYCLE_FILE "/dev/hat/pwm/GPIO14/duty_cycle"
+#define SERVO_PERIOD_FILE "/dev/hat/pwm/GPIO14/period"
 
-#define NEUTRAL_US 1549 // 1549us
-#define FORWARD_US 1789 // 1789us
-#define BACKWARD_US 1296 // 1296us
+#define LEFT 1000 // 1000us
+#define RIGHT 2000 // 2000us
 
-static int current_speed = 0;
-static bool current_reverse = false;
+static double current_angle = 90.0; // 0 is left and 180 is right
 
 // #region Helper functions
 static void sleepForMs(long long delayInMs) {
@@ -42,7 +40,7 @@ static int hz_to_period(int hz) {
 }
 
 static void set_duty_cycle(long long duty_cycle) {
-  FILE *duty_file = fopen(MOTOR_DUTY_CYCLE_FILE, "r");
+  FILE *duty_file = fopen(SERVO_DUTY_CYCLE_FILE, "r");
   if (duty_file == NULL) {
     perror("Error opening duty file for reading");
     exit(EXIT_FAILURE);
@@ -66,7 +64,7 @@ static void set_duty_cycle(long long duty_cycle) {
     return;
   }
 
-  duty_file = fopen(MOTOR_DUTY_CYCLE_FILE, "w");
+  duty_file = fopen(SERVO_DUTY_CYCLE_FILE, "w");
   if (duty_file == NULL) {
     perror("Error opening duty file");
     exit(EXIT_FAILURE);
@@ -87,7 +85,7 @@ static void set_period(long long period) {
   // A call to this function requires a call to set_duty_cycle afterwards
 
   set_duty_cycle(0); // Since the duty cycle needs to be less than the period
-  FILE *period_file = fopen(MOTOR_PERIOD_FILE, "w");
+  FILE *period_file = fopen(SERVO_PERIOD_FILE, "w");
   if (period_file == NULL) {
     perror("Error opening period file");
     exit(EXIT_FAILURE);
@@ -104,12 +102,12 @@ static void set_period(long long period) {
   }
 }
 
-static void enable_motor() {
+static void enable_servo() {
   assert(initialized);
   enabled = true;
 
   // Check the value in the enable file
-  FILE *enable_file = fopen(MOTOR_ENABLE_FILE, "r");
+  FILE *enable_file = fopen(SERVO_ENABLE_FILE, "r");
   if (enable_file == NULL) {
     perror("Error opening enable file");
     exit(EXIT_FAILURE);
@@ -127,12 +125,12 @@ static void enable_motor() {
   }
 
   if (on == 1) {
-    // The Motor is already on
+    // The servo is already on
     return;
   }
 
-  // Start the Motor
-  enable_file = fopen(MOTOR_ENABLE_FILE, "w");
+  // Start the Servo
+  enable_file = fopen(SERVO_ENABLE_FILE, "w");
   if (enable_file == NULL) {
     perror("Error opening enable file");
     exit(EXIT_FAILURE);
@@ -149,13 +147,13 @@ static void enable_motor() {
   }
 }
 
-static void disable_motor() {
-  // This function is called when the motor turns off
+static void disable_servo() {
+  // This function is called when the servo turns off
   assert(initialized);
   enabled = false;
 
-  // Check the vaalue in the enable file
-  FILE *enable_file = fopen(MOTOR_ENABLE_FILE, "r");
+  // Check the value in the enable file
+  FILE *enable_file = fopen(SERVO_ENABLE_FILE, "r");
   if (enable_file == NULL) {
     perror("Error opening enable file");
     exit(EXIT_FAILURE);
@@ -173,12 +171,12 @@ static void disable_motor() {
   }
 
   if (on == 0) {
-    // The motor is already off
+    // The servo is already off
     return;
   }
 
-  // Turn off the LED emitter
-  enable_file = fopen(MOTOR_ENABLE_FILE, "w");
+  // Turn off the servo
+  enable_file = fopen(SERVO_ENABLE_FILE, "w");
   if (enable_file == NULL) {
     perror("Error opening enable file");
     exit(EXIT_FAILURE);
@@ -195,82 +193,54 @@ static void disable_motor() {
   }
 }
 
-static void start_motor() {
+static long long angle_to_duty(int angle){
+  // Convert the angle to a duty cycle
+  // The servo expects a duty cycle between 1000us and 2000us
+  // The angle is between 0 and 180 degrees
+  assert(angle >= 0 && angle <= 180);
+  return (long long) LEFT + (RIGHT - LEFT) * angle / 180;
+}
+
+
+
+static void start_servo() {
   assert(initialized);
-  assert(!enabled); // The motor should be off
+  assert(!enabled); // The servo should be off
 
   // Set the correct duty and period cycle
-  // From the radio module it seems the motor expects a 71hz signal
-  set_period(hz_to_period(71));         // Set the period to 71hz
-  set_duty_cycle(us_to_ns(NEUTRAL_US)); // Set the duty cycle to neutral
+  // From the radio module it seems the servo expects a 71hz signal
+  set_period(hz_to_period(50));         // Set the period to 71hz
+  set_duty_cycle(us_to_ns(angle_to_duty(90))); // Set the duty cycle to neutral
 
-  // Enable the motor
-  enable_motor();
+  // Enable the servo
+  enable_servo();
 }
 
 // #endregion
 
-void motor_init(void) {
+void servo_init(void) {
   assert(!initialized);
   initialized = true;
-  start_motor();
+  start_servo();
 }
-void motor_cleanup(void) {
+void servo_cleanup(void) {
   assert(initialized);
-  disable_motor();
+  disable_servo();
   initialized = false;
 }
 
-void motor_set_speed(int speed, bool reverse) {
+void servo_set_angle(double angle) {
   assert(initialized);
-  assert(speed >= 0 && speed <= 100);
+  assert(enabled); // The servo should be on
+  assert(angle >= 0 && angle <= 180);
 
-  assert(enabled); // The motor should be on
-  if (current_speed == speed) {
-    return; // No need to change the speed
-  }
-
-  // Calculate the duty cycle for the speed
-  if (reverse != current_reverse) {
-    // Need to change direction of the motor
-    // Go to neutral first
-    set_duty_cycle(us_to_ns(NEUTRAL_US));
-    sleepForMs(15); // 71hz has a period of ~14ms so we wait atleast 1 period
-    current_reverse = reverse;
-  }
-
-  long long duty_cycle = 0;
-  if (reverse) {
-    // Move in reverse
-    duty_cycle =
-        us_to_ns(NEUTRAL_US - speed * (NEUTRAL_US - BACKWARD_US) / 100);
-  } else {
-    // Move forward
-    duty_cycle = us_to_ns(NEUTRAL_US + speed * (FORWARD_US - NEUTRAL_US) / 100);
-  }
-
-  assert(duty_cycle != 0);
-  set_duty_cycle(duty_cycle);
-  current_speed = speed;
+  // Set the duty cycle to the new angle
+  set_duty_cycle(us_to_ns(angle_to_duty(angle)));
+  current_angle = angle;
 }
 
-void motor_add_speed(int speed){
-    assert(initialized);
-
-    // Compute speed
-    int new_speed = current_speed + speed;
-    if (new_speed > 100) {
-        new_speed = 100;
-    } else if (new_speed < 0) {
-        new_speed = 0;
-    }
-
-    // Validate the new speed
-    assert(new_speed >= 0 && new_speed <= 100);
-    
-    // Set the new speed
-    motor_set_speed(new_speed, current_reverse);
+double servo_get_angle(void) {
+  assert(initialized);
+  assert(enabled); // The servo should be on
+  return current_angle;
 }
-
-int motor_get_speed(void) { return current_speed; }
-bool motor_get_reverse(void) { return current_reverse; }
