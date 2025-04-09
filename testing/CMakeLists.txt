@@ -8,6 +8,15 @@ COMMAND "${CMAKE_COMMAND}" -E copy
 COMMENT "Copying motorTest to public folder")
 
 # For the webServerTest executable
+add_executable(servoTest src/servoTest.c)
+target_link_libraries(servoTest LINK_PRIVATE hal)
+add_custom_command(TARGET servoTest POST_BUILD
+COMMAND "${CMAKE_COMMAND}" -E copy
+"$<TARGET_FILE:servoTest>"
+"~/cmpt433/public/servoTest"
+COMMENT "Copying servoTest to public folder")
+
+# For the webServerTest executable
 add_executable(webServerTest src/webServerTest.cpp)
 target_link_libraries(webServerTest LINK_PRIVATE webServer)
 target_link_libraries(webServerTest PRIVATE crow)
@@ -54,12 +63,12 @@ add_custom_command(TARGET lcd_video_test POST_BUILD
   COMMENT "Copying lcd_video_test executable to public NFS directory")
 
 
-# For the vidStreamer executable
-add_executable(vidStreamerTest src/vidStreamerTest.cpp)
-target_link_libraries(vidStreamerTest LINK_PRIVATE vidStreamer)
+# # For the vidStreamer executable
+# add_executable(vidStreamerTest src/vidStreamerTest.cpp)
+# target_link_libraries(vidStreamerTest LINK_PRIVATE vidStreamer)
 
-add_custom_command(TARGET vidStreamerTest POST_BUILD 
-COMMAND "${CMAKE_COMMAND}" -E copy
-"$<TARGET_FILE:vidStreamerTest>"
-"~/cmpt433/public/vidStreamerTest"
-COMMENT "Copying vidStreamerTest to public folder")
+# add_custom_command(TARGET vidStreamerTest POST_BUILD 
+# COMMAND "${CMAKE_COMMAND}" -E copy
+# "$<TARGET_FILE:vidStreamerTest>"
+# "~/cmpt433/public/vidStreamerTest"
+# COMMENT "Copying vidStreamerTest to public folder")

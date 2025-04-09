@@ -34,7 +34,7 @@ add_link_options(-pthread)
 # What folders to build
 add_subdirectory(header_files)
 add_subdirectory(webServer)
-# add_subdirectory(testing)
+add_subdirectory(testing)
 
 add_subdirectory(hal)
 add_subdirectory(app)
