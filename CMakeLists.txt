@@ -35,7 +35,7 @@ add_link_options(-pthread)
 add_subdirectory(header_files)
 add_subdirectory(webServer)
 add_subdirectory(testing)
-
+add_subdirectory(webcam)
 add_subdirectory(hal)
 add_subdirectory(app)
 add_subdirectory(util)
