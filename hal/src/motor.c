@@ -242,10 +242,12 @@ void motor_set_speed(int speed, bool reverse) {
   long long duty_cycle = 0;
   if (reverse) {
     // Move in reverse
+    printf("reverse\n");
     duty_cycle =
         us_to_ns(NEUTRAL_US - speed * (NEUTRAL_US - BACKWARD_US) / 100);
   } else {
     // Move forward
+    printf("forward\n");
     duty_cycle = us_to_ns(NEUTRAL_US + speed * (FORWARD_US - NEUTRAL_US) / 100);
   }
 
