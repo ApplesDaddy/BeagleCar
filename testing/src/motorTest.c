@@ -19,15 +19,23 @@ int main(void) {
   gpio_init();
   motor_init();
   rot_encoder_init();
-  rot_encoder_set_min_max(0, 100);
-  rot_encoder_set_step(1);
+  rot_encoder_set_min_max(-100, 100);
+  rot_encoder_set_step(10);
   rot_encoder_set_counter(0);
 
 
   while (true) {
     int val = rot_encoder_get_val();
-    motor_set_speed(val, false);
+    if (val < 100) { 
+      val = abs(val);
+      motor_set_speed(val, true);
+    } else {
+      motor_set_speed(val, false);
+    }
+
     printf("Rotary Encoder Value: %d\n", val);
+
+    
   }
 
   rot_encoder_cleanup();
