@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     joystick_init();
     rot_encoder_init();
     rot_encoder_set_min_max(-100, 100);
-    rot_encoder_set_step(5);
+    rot_encoder_set_step(10);
 
     // init udp sender
     char *ip = argv[1];
