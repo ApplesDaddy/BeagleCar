@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
             gpio_init();
             joystick_init();
             rot_encoder_init();
+            rot_encoder_set_min_max(0, 100);
+            rot_encoder_set_step(5);
         }
 
         send_udp_init(is_terminal_sender, RECV_IP);

@@ -156,7 +156,7 @@ void* send_udp(void* args)
 
         // send encoder vals
         if(rot_encoder_is_pressed())
-        { send_encoder_push(); }
+        { send_encoder_push(); rot_encoder_set_counter(0);}
         send_encoder_val();
 
         sleep_ms(SEND_INTERVAL_MS);

@@ -95,20 +95,13 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
             // TODO: do something with this input
             printf("x: %f   y: %f\n", x_val, y_val);
-            int speed = (x_val) * 100;
-            if (speed > 100){
-                speed = 99; 
-            }
-            if (speed < 0){
-                speed =1;
-            }
 
             int angle = (y_val + 1) / 2 * 180;
             if (angle > 180){
-                speed = 179; 
+                angle = 179; 
             }
-            if (speed < 0){
-                speed =1;
+            if (angle < 0){
+                angle =1;
             }
 
             printf("Angle: %d", angle);
@@ -116,8 +109,6 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
 
 
-            printf("speed: %d\n", speed);
-            motor_set_speed(speed, false);
         } break;
         case CODE_ENCODER_VAL:
         {
@@ -129,6 +120,10 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
 
             // TODO: do something with this input
             printf("encoder: %d\n", val);
+
+            motor_set_speed(val, false);
+
+
 
             // ack
             if(val != encoder_val || curr_ack_timeout <= 0)
@@ -145,7 +140,8 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
         case CODE_ENCODER_PUSH:
         {
             // TODO: add encoder push behavior if desired
-            printf("encoder push\n");
+            printf("encoder push\nBREAK!!!!!!!!!!!!!!!\n");
+            motor_set_speed(0,false);
         } break;
         case CODE_JOYSTICK_PUSH:
         {
