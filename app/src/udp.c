@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             rot_encoder_init();
         }
 
-        send_udp_init(is_terminal_sender);
+        send_udp_init(is_terminal_sender, RECV_IP);
     }
     else
     {

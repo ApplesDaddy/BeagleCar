@@ -214,7 +214,7 @@ Everytime on re/boot:
 ```
 
 ### Testing Connectivity
-Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcpd/dhcpd.leases` on the AP)
+Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcp/dhcpd.leases` on the AP)
 ```
 (device 1)$ ping (AP IP)
 (device 1)$ ping (device 2 IP)

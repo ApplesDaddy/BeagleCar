@@ -17,15 +17,22 @@ extern "C"{
 
 #define WEBSERVER_PORT 8080
 
-int main()
+int main(int argc, char* argv[])
 {
+    if(argc < 2){
+        std::cout << "Usage: " << argv[0] << "<ip_address>" << std::endl;
+        return 1;
+    }
+
+    std::cout << "argc " << argc << std::endl;
     // init hardware
     gpio_init();
     joystick_init();
     rot_encoder_init();
 
     // init udp sender
-    send_udp_init(false);
+    char *ip = argv[1];
+    send_udp_init(false, ip);
 
     // Start LCD thread
     lcdStreamRecv lcd;
