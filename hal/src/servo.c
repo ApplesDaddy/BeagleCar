@@ -118,6 +118,7 @@ static void enable_servo() {
     perror("Error readding from enable file");
     exit(EXIT_FAILURE);
   }
+
   int fileclose = fclose(enable_file);
   if (fileclose != 0) {
     perror("Error closing enable file");
@@ -209,7 +210,7 @@ static void start_servo() {
 
   // Set the correct duty and period cycle
   // From the radio module it seems the servo expects a 71hz signal
-  set_period(hz_to_period(50));         // Set the period to 71hz
+  set_period(hz_to_period(71));         // Set the period to 71hz
   set_duty_cycle(us_to_ns(angle_to_duty(90))); // Set the duty cycle to neutral
 
   // Enable the servo

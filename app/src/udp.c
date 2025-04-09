@@ -5,6 +5,7 @@
 #include "hal/gpio.h"
 #include "util/common_funcs.h"
 #include "hal/motor.h"
+#include "hal/servo.h"
 #include "udp_constants.h"
 
 #include <stdbool.h>
@@ -16,7 +17,7 @@
 
 static bool is_sender = false;
 static bool is_terminal_sender = false;
-char* RECV_IP; // global var used by sender.c
+static char* RECV_IP; // global var used by sender.c
 
 static inline void handle_cmd_args(int argc, char *argv[])
 {
@@ -72,6 +73,7 @@ int main(int argc, char *argv[])
     {
         recv_udp_init();
         motor_init();
+        servo_init();
     }
 
     // listen for keypresses if sender, else sleep
@@ -120,6 +122,8 @@ int main(int argc, char *argv[])
     else
     {
         recv_udp_cleanup();
+        motor_cleanup();
+        servo_cleanup();
     }
 
     return 0;

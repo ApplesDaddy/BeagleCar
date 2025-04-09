@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <hal/motor.h>
+#include <hal/servo.h>
 
 
 static pthread_t udp_thread;
@@ -101,6 +102,20 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
             if (speed < 0){
                 speed =1;
             }
+
+            int angle = (y_val + 1) / 2 * 180;
+            if (angle > 180){
+                speed = 179; 
+            }
+            if (speed < 0){
+                speed =1;
+            }
+
+            printf("Angle: %d", angle);
+            servo_set_angle(angle);
+
+
+
             printf("speed: %d\n", speed);
             motor_set_speed(speed, false);
         } break;
