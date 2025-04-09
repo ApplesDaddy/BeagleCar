@@ -3,7 +3,7 @@ Description=Service for running the Beagle car code on poweron.
 After=network.target
 
 [Service]
-ExecStart=#TODO
+ExecStart=/home/
 User=root
 Restart=on-failure
 

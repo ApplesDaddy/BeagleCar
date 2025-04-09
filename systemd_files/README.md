@@ -1,0 +1,1 @@
+TEST.psk needs to be in /var/lib/iwd/TEST.psk

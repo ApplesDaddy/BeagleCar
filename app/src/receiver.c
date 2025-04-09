@@ -121,6 +121,12 @@ static inline void process_cmd(char* cmd, struct sockaddr_in* remote)
             // TODO: do something with this input
             printf("encoder: %d\n", val);
 
+            if (val >= 100){
+                val = 99; 
+            } else if (val <=0 ){
+                val = 1;
+            }
+
             motor_set_speed(val, false);
 
 
