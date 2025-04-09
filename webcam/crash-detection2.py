@@ -14,7 +14,6 @@ import os
 
 video_driver_id = 3
 
-#https://stackoverflow.com/questions/47802480/create-boolean-mask-of-numpy-rgb-array-if-matches-color
 def color_change_detected(prev_avg, curr_avg, threshold=20.0):
     dist = np.linalg.norm(np.array(curr_avg[:3]) - np.array(prev_avg[:3]))
     return dist > threshold
@@ -75,11 +74,16 @@ def main():
     buf_type = v4l2_buf_type(V4L2_BUF_TYPE_VIDEO_CAPTURE)
     fcntl.ioctl(vd, VIDIOC_STREAMON, buf_type)
 
-    UDP_IP = "192.168.7.1"
-    UDP_PORT = 12345
-    MESSAGE_PORT = 12346
+    UDP_IP = "192.168.10.1"
+    UDP_PORT = 12347
+    MESSAGE_PORT = 12322
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     message_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    UDP_WEBSERVER_PORT = 12346
+
+
+
 
     output_dir = "frame_data"
     if not os.path.exists(output_dir):
@@ -94,8 +98,12 @@ def main():
         frame_number = 0
         start_time = time.time()
         frame_count = 0
-
+        
         while True:
+            
+            
+
+
             buf = v4l2_buffer()
             buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
             buf.memory = V4L2_MEMORY_MMAP
@@ -129,9 +137,15 @@ def main():
             # update previous avg colour
             prev_avg_color = curr_avg_color
 
-            encoded_frame = cv2.imencode('.jpg', frame)[1].tobytes()
-            # send frame
-            sock.sendto(encoded_frame, (UDP_IP, UDP_PORT))
+            if (frame_count % 1 == 0):
+                encoded_frame = cv2.imencode('.jpg', frame)[1].tobytes()
+                # send frame
+                try: 
+                    sock.sendto(encoded_frame, (UDP_IP, UDP_PORT))
+                    sock.sendto(encoded_frame, (UDP_IP, UDP_WEBSERVER_PORT))
+                except:
+                    pass
+                    
 
             frame_number += 1
             frame_count += 1
