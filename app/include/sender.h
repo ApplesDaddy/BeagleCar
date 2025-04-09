@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 
-void send_udp_init(bool use_terminal);
+void send_udp_init(bool use_terminal, char* ip);
 void send_udp_cleanup();
 void send_terminal_input(char input, int* curr_encoder);
 

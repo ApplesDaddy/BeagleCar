@@ -8,13 +8,16 @@ Equipment:
 
 Contents:
 - [Dependencies](#dependencies)
-  - [webServer](#webserver)
-  - [webcam](#webcam)
-  - [lcd/video streaming](#lcdvideo-streaming)
-  - [udp terminal send testing](#udp-terminal-send-testing)
+    - [webServer](#webserver)
+    - [webcam python](#webcam-python)
+    - [webcam c](#webcam-c)  
+    - [lcd/video streaming](#lcdvideo-streaming)
+    - [udp terminal send testing](#udp-terminal-send-testing)
 - [Wi-Fi Setup](#wi-fi-setup)
-  - [Client](#client)
-  - [AP](#ap)
+    - [Client](#client)
+    - [AP](#ap)
+- [Run Webcam Python](#run-webcam-python)
+- [Run Webcam C](#run-webcam-c)
 - [WebServer](#web-server)
 - [Manually Running CMake](#manually-running-cmake)
 - [LCD config](#lcd-config)
@@ -33,45 +36,37 @@ Contents:
     (host)$ sudo apt install ffmpeg
     (byai)$ sudo apt install ffmpeg
     ```
-#### webcam
-    1) openCV
+#### webcam python
+    1) create a virtual environment. Check the venv's pip is being used with which pip. If the wrong one is used,         try python3 -m pip install To create venv, follow steps below or follow steps 1,2,3 from ->         https://docs.beagleboard.org/boards/beagley/ai/demos/beagley-ai-object-detection-tutorial.html
+    ```bash
+    (target)$ sudo apt install python3-venv
+    (target)$ python3 -m venv .venv
+    (target)$ source .venv/bin/activate
+    ```
+    2) install:
+    ```bash
+    (target)$ pip install v4l2
+    (target)$ pip install opencv-python
+    (target)$ pip install numpy==1.26.4
+    ```
+    
+ troubleshooting
+`error: externally-managed-environment` message?
+
+Create a virtual environment. Check the venv's pip is being used with `which pip`. If the wrong one is used, try `python3 -m pip install`
+
+---
+`TypeError: unsupported operand type(s) for +: 'range' and 'list'` from importing v4l2?
+
+manually fix the lines in the file (see error message) by wrapping `range()` in `list()` (example: `list(range())`)
+
+#### webcam c
     ```bash
     (target)$ sudo apt-get install libv4l-dev
     (target)$ sudo apt-get install libopencv-dev
     (target)$ sudo apt-get install ffmpeg
     ```
-    2) compile code
-    ```bash
-    (host)$ make
-    (host)$ make install
-    ```
-
-    3) VLC (to view video on host)
-    ```bash
-    (host) $ sudo apt install vlc
-    ```
-    4) run on target
-     ```bash
-    (target) $ ./capture_exec -F -o -c0 | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
-    ```
-
-    4.5) if 4 doesn't work ('pipe:0: Invalid data found when processing input'),
-    first check where usb webcam shows up:
-
-
-     ```bash
-    (target) v4l2-ctl --list-devices
-    ```
-
-   then replace (/dev/video/_) with where the webcam is recognized (ex. video1/video2/video3)
-
-   ```bash
-   (target) $ ./capture_exec -F -o -c0 -d /dev/video_ | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
-   ```
-
-    5) Open VLC, click ‘Media – Open Network Stream’, set the network URL
-    ‘udp://@:1234’, and click the play button. Then, the VLC will show the video
-    stream.
+    
 
 #### lcd/video streaming
     ```sh
@@ -219,7 +214,7 @@ Everytime on re/boot:
 ```
 
 ### Testing Connectivity
-Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcpd/dhcpd.leases` on the AP)
+Connect two devices to the AP and figure out their IPs. (Look on the device or check `/var/lib/dhcp/dhcpd.leases` on the AP)
 ```
 (device 1)$ ping (AP IP)
 (device 1)$ ping (device 2 IP)
@@ -256,6 +251,57 @@ General Networking:
 - `sudo iptables -L` to check firewall
 - `sudo tcpdump -i wlan0` to check packets on interface
 
+#### Run Webcam Python 
+
+1) on target: `python3 crash-detection2.py`
+
+        (crash-detection2 logic: if the average colour of the bottom half of frame(n-1) 
+                             is different from frame(n)'s, detect crash. 5 sec 
+                             cooldown. colour deviation threshold can be adjusted)
+    OR
+
+2) on target: `python3 crash-detection3.py`
+    
+        (crash-detection3 logic: populate moving average with the average colour of the bottom
+                              half of frames for 5 seconds. then, if 5 consecutive frames deviate from the                                       moving average, detect crash. 5 sec cooldown. colour deviation threshold can be                                    adjusted)
+   
+3) to view stream on host: `python3 receiveUDP.py`  
+
+4) on second terminal on host to receive crash messages: `nc -u -l -p 12346`
+
+## Run Webcam C
+
+1) compile 
+    ```bash
+    (host)$ make
+    (host)$ make install
+    ```
+
+2) VLC (to view video on host)
+    ```bash
+    (host) $ sudo apt install vlc
+    ```
+    4) run on target
+     ```bash
+    (target) $ ./capture_exec -F -o -c0 | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
+    ```
+
+3) if 4 doesn't work ('pipe:0: Invalid data found when processing input'),
+    first check where usb webcam shows up:
+
+     ```bash
+    (target) v4l2-ctl --list-devices
+    ```
+
+   then replace (/dev/video/_) with where the webcam is recognized (ex. video1/video2/video3)
+
+   ```bash
+   (target) $ ./capture_exec -F -o -c0 -d /dev/video_ | ffmpeg -i pipe:0 -vcodec copy -f mjpeg udp://192.168.7.1:1234
+   ```
+
+4) Open VLC, click ‘Media – Open Network Stream’, set the network URL
+    ‘udp://@:1234’, and click the play button. Then, the VLC will show the video
+    stream.
 
 ### Web Server
 - You can run the example server after building by doing the following:

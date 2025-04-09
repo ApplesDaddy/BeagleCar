@@ -15,6 +15,7 @@ import os
 
 video_driver_id = 3  
 
+#https://stackoverflow.com/questions/47802480/create-boolean-mask-of-numpy-rgb-array-if-matches-color
 def color_change_detected(moving_avg, curr_avg, threshold=20.0):
     dist = np.linalg.norm(curr_avg - moving_avg)
     return dist > threshold

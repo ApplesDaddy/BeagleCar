@@ -39,12 +39,19 @@ static void* listen_udp(void* args);
 
 void send_terminal_input(char input, int* curr_encoder);
 
+char* RECV_IP;
+
 
 // ======================================== public functions ======================================
-void send_udp_init(bool use_terminal)
+void send_udp_init(bool use_terminal, char* ip)
 {
     initialized = true;
-    setup_socket();
+
+    RECV_IP = malloc(sizeof(char)*16);
+    strncpy(RECV_IP, ip, 16);
+
+
+    setup_socket(RECV_IP);
 
     // enable sending data thru terminal instead of hardware
     if(!use_terminal)
@@ -72,7 +79,7 @@ void send_udp_cleanup()
 
 
 // ======================================== private functions ======================================
-static inline void setup_socket()
+static inline void setup_socket(char* RECV_IP)
 {
     memset(&remote, 0, sizeof(remote));
     remote.sin_family = AF_INET;

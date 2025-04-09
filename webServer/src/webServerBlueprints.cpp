@@ -165,7 +165,7 @@ void add_routes(crow::SimpleApp& app){
 
 void send_video_websocket(crow::websocket::connection& conn, int pipe_fd){
             // Read from pipe and send to websocket
-            char data[1024 * 1024]; // 1Mb buffer size
+            char data[5 * 1024 * 1024]; // 1Mb buffer size
             size_t read_size;
             while ((read_size = read(pipe_fd, data, sizeof(data))) > 0) {
                 conn.send_binary(std::string(data, read_size));  // Send binary data as a string
