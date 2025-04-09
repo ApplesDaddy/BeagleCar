@@ -1,14 +1,15 @@
-#Start the hats
-/home/cmpt433-user/start-hats.sh
-sleep 1
+#!/bin/bash
 
+
+#Start the hats
+/home/cmpt433-user/start-hats.sh || exit 1
+echo "Started the Hats."
 
 # Connect to the wifi
 iwctl station wlan0 disconnect
-sleep 0.5
+echo "Disconnect wlan0"
 
 iwctl station wlan0 scan
-sleep 1 
 
 SSID="TEST"
 PASS="testing123"
@@ -19,9 +20,8 @@ mkdir -p /var/lib/iwd
 
 # Bring up the Wi-Fi
 iwctl station "$DEVICE" connect "$SSID"
+echo "Connect to WIFI"
 
-
-sleep 1
 
 
 # Start the video
@@ -30,9 +30,14 @@ source /home/cmpt433-user/.BEAGLE_CAR_VENV/bin/activate
 
 # Run the Python script in the background
 nohup python crash-detection2.py &
-
-sleep 1
+echo "nohup the video send"
 
 
 # Start the car
-nohup /home/cmpt433-user/udp &
+/home/cmpt433-user/udp &
+echo "udp receive up"
+
+sleep 10000000
+echo "Slept for 60 seconds"
+
+
