@@ -84,7 +84,8 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
         (host) sudo apt-get install libavformat-dev
         (host) sudo apt-get install libswscale-dev
         (host) sudo apt-get install libavutil-dev
-
+    ```
+    ```sh
         (target)$ sudo apt-get install ffmpeg
         (target)$ sudo apt install liblgpio-dev
     ```
@@ -115,6 +116,8 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
   - Install ffmpeg development libraries on host and target
   ```bash
   (host)$ sudo apt-get install libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev
+  ```
+  ```bash
   (target)$ sudo apt-get install libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev
   ```
   - Install arm64 versions ffmpeg development libraries on host and target
@@ -129,6 +132,8 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
   # Check if libraries have been installed
   (host)$ sudo apt list libavcodec-dev
   # Result should be something like "libavcodec-dev/stable,stable-security,now 7:5.1.6-0+deb12u1 arm64 [installed]"
+  ```
+  ```bash
   # Find locations of packages
   (target)$ dpkg -L libavcodec-dev:arm64
   # Result should contain "/usr/include/aarch64-linux-gnu/libavcodec" and "/usr/lib/aarch64-linux-gnu"
@@ -146,8 +151,9 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
 We need to activate the PWM pins on the boards. For controlling the car we need GPIO 14 and 15 to control the motor and servo, and for the controller board we need GPIO 5, 16, and 17 for joystick push and the rotary encoder. **pin 5 and 15 are on the same line** so only activate the pins that are required on each board.
 
 ## Wi-Fi setup
-
+There are convenience scripts in wifi_config_files.
 ### Client
+Method 3 was the method that ended up being most reliable and used.
 
 #### Method 1 (wpa_supplicant):
 
