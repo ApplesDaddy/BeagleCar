@@ -10,6 +10,7 @@ References
     https://ffmpeg.org/ffmpeg-protocols.html#udp
     https://stackoverflow.com/questions/52303867/how-do-i-set-ffmpeg-pipe-output
     https://stackoverflow.com/questions/52396602/conversion-from-mjpeg-to-mp4-libx264-with-ffmpeg
+    https://stackoverflow.com/questions/43563208/what-does-forcing-key-frames-mean
 */
 #define FFMPEG_CMD "ffmpeg"
 #define FFLAGS "-fflags"
@@ -33,6 +34,12 @@ References
 #define TUNE_ARG "zerolatency"
 #define PRESET "-preset"
 #define PRESET_ARG "ultrafast"
+#define GOP "-g"
+#define GOP_ARG "15"
+#define FRAG_DURATION "-frag_duration"
+#define FRAG_DURATION_ARG "500000"
+#define KEY_FRAMES "-force_key_frames"
+#define KEY_FRAMES_ARG "expr:gte(t,n_forced*0.5)"
 
 int p_id, pipe_fd[2];
 
@@ -129,8 +136,8 @@ void add_routes(crow::SimpleApp &app) {
                 // gave up trying to write remuxer using libav; ffmpeg system call instead
                 // replaces the current process image with ffmpeg's process image
                 if (execlp(FFMPEG_CMD, FFMPEG_CMD, FFLAGS, FFLAGS_ARG, INPUT, INPUT_URL, PIX_FMT, PIX_FMT_ARG, BITRATE,
-                           BITRATE_ARG, COPY, COPY_ARG, PRESET, PRESET_ARG, "-g", "15", "-force_key_frames",
-                           "expr:gte(t,n_forced*0.5)", "-frag_duration", "500000", TUNE, TUNE_ARG, MOVFLAG,
+                           BITRATE_ARG, COPY, COPY_ARG, PRESET, PRESET_ARG, GOP, GOP_ARG, KEY_FRAMES, 
+                           KEY_FRAMES_ARG, FRAG_DURATION, FRAG_DURATION_ARG, TUNE, TUNE_ARG, MOVFLAG,
                            MOVFLAG_ARGS, FORMAT, FORMAT_ARG, OUTPUT, (const char *)NULL) == -1) {
                     std::cout << "Error: Launching ffmpeg failed\n";
                 }
