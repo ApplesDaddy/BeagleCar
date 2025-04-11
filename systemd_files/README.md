@@ -1,6 +1,7 @@
 # Setup Instructions
 
 Assumption: Target User is cmpt433-user, and other required files such as start-hats.sh and udp are already in the home directory.
+
 On the target, you can run `setup.sh` as sudo or manually do the following:
 
 ## File Locations
