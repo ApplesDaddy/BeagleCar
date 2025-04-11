@@ -96,7 +96,7 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
         (host) sudo apt-get install libncurses5-dev
     ```
 
-- vidStreamer
+#### vidStreamer
   - Install ffmpeg on BeagleY-AI
   ```bash
   (target)$ sudo apt update
