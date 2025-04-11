@@ -5,7 +5,6 @@ Equipment:
 - BeagleBone Y-AI
 - Logitech C270 720p webcam
 
-
 Contents:
 - [Dependencies](#dependencies)
     - [webServer](#webserver)
@@ -13,6 +12,7 @@ Contents:
     - [webcam c](#webcam-c)  
     - [lcd/video streaming](#lcdvideo-streaming)
     - [udp terminal send testing](#udp-terminal-send-testing)
+    - [PWM for Motor, Servo, Rotary Encoder, Joystick](#pwm)
 - [Wi-Fi Setup](#wi-fi-setup)
     - [Client](#client)
     - [AP](#ap)
@@ -132,6 +132,11 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
     ``` -->
 
 
+
+#### PWM
+We need to activate the PWM pins on the boards. For controlling the car we need GPIO 14 and 15 to control the motor and servo, and for the controller board we need GPIO 5, 16, and 17 for joystick push and the rotary encoder. **pin 5 and 15 are on the same line** so only activate the pins that are required on each board.
+
+
 ## Wi-Fi setup
 ### Client
 #### Method 1 (wpa_supplicant):
@@ -162,6 +167,16 @@ Doesnt seem to give wlan0 an address. Unsure if this will cause issues
 (target)$ sudo apt-get install network-manager
 (target)$ sudo nmcli d wifi connect wifi_ssid password wifi_password
 ```
+
+#### Method 3 (iwctl):
+This works well with bash, and provides a nice ui for going through it. If there is a passcode for the network then a prompt will show up if going through it manually for you to enter the passcode.
+If using a bash script like in systemd then make sure that the psk file is set in "/var/lib/iwd/".
+```bash
+(target)$ iwctl station wlan0 disconnect
+(target)$ iwctl station wlan0 scan
+(target)$ iwctl station wlan0 connect wifi_ssid
+```
+
 
 ### AP
 
