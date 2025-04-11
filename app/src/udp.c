@@ -1,39 +1,41 @@
+#include "hal/gpio.h"
+#include "hal/joystick.h"
+#include "hal/motor.h"
+#include "hal/rotary_encoder.h"
+#include "hal/servo.h"
 #include "receiver.h"
 #include "sender.h"
-#include "hal/joystick.h"
-#include "hal/rotary_encoder.h"
-#include "hal/gpio.h"
-#include "util/common_funcs.h"
-#include "hal/motor.h"
-#include "hal/servo.h"
 #include "udp_constants.h"
+#include "util/common_funcs.h"
 
-#include <stdbool.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ncurses.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static bool is_sender = false;
 static bool is_terminal_sender = false;
-static char* RECV_IP; // global var used by sender.c
+static char *RECV_IP; // global var used by sender.c
 
-static inline void handle_cmd_args(int argc, char *argv[])
-{
+static inline void handle_cmd_args(int argc, char *argv[]) {
 
-    if(argc >= 3 && strcmp(argv[2], "--sender") == 0)
-    { is_sender = true; }
-    if(argc >= 3 && strcmp(argv[2], "--terminal") == 0)
-    { is_terminal_sender = true; }
+    if (argc >= 3 && strcmp(argv[2], "--sender") == 0) {
+        is_sender = true;
+    }
+    if (argc >= 3 && strcmp(argv[2], "--terminal") == 0) {
+        is_terminal_sender = true;
+    }
 
-    if(argc >= 4 && strcmp(argv[3], "--sender") == 0)
-    { is_sender = true; }
-    if(argc >= 4 && strcmp(argv[3], "--terminal") == 0)
-    { is_terminal_sender = true; }
+    if (argc >= 4 && strcmp(argv[3], "--sender") == 0) {
+        is_sender = true;
+    }
+    if (argc >= 4 && strcmp(argv[3], "--terminal") == 0) {
+        is_terminal_sender = true;
+    }
 
-    if (strcmp(argv[1], "--help") == 0)
-    {
+    if (strcmp(argv[1], "--help") == 0) {
         printf("Usage: udp <other IP address> [--sender] [--terminal]\n");
 
         printf("Options:\n");
@@ -46,22 +48,18 @@ static inline void handle_cmd_args(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
-    RECV_IP = malloc(sizeof(char)*16);
+    RECV_IP = malloc(sizeof(char) * 16);
     strncpy(RECV_IP, argv[1], 16);
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc > 1)
-    {
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
         handle_cmd_args(argc, argv);
     }
 
     // initialize hardware only if there's hardware
-    if (is_sender)
-    {
-        if (!is_terminal_sender)
-        {
+    if (is_sender) {
+        if (!is_terminal_sender) {
             gpio_init();
             joystick_init();
             rot_encoder_init();
@@ -70,26 +68,21 @@ int main(int argc, char *argv[])
         }
 
         send_udp_init(is_terminal_sender, RECV_IP);
-    }
-    else
-    {
+    } else {
         recv_udp_init();
         motor_init();
         servo_init();
     }
 
     // listen for keypresses if sender, else sleep
-    if (is_sender)
-    {
+    if (is_sender) {
         initscr();
         timeout(1000);
     }
 
     int curr_encoder = 0;
-    while (is_sender || recv_is_active())
-    {
-        if (is_sender)
-        {
+    while (is_sender || recv_is_active()) {
+        if (is_sender) {
             // char input = getchar(); // alternative to ncurses (comment out ncurses part in CMakeLists)
             char input = getch();
             if (input == 'q') // quit
@@ -97,32 +90,25 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if (is_terminal_sender)
-            {
+            if (is_terminal_sender) {
                 send_terminal_input(input, &curr_encoder);
             }
-        }
-        else
-        {
+        } else {
             sleep_ms(500);
         }
     }
     endwin();
 
     // cleanup hardware only if there's hardware
-    if (is_sender)
-    {
+    if (is_sender) {
         send_udp_cleanup();
 
-        if (!is_terminal_sender)
-        {
+        if (!is_terminal_sender) {
             rot_encoder_cleanup();
             joystick_cleanup();
             gpio_cleanup();
         }
-    }
-    else
-    {
+    } else {
         recv_udp_cleanup();
         motor_cleanup();
         servo_cleanup();

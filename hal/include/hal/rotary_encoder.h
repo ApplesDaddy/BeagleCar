@@ -11,9 +11,7 @@
 #ifndef _ROT_ENCODER_H_
 #define _ROT_ENCODER_H_
 
-
 #include <stdbool.h>
-
 
 void rot_encoder_init(void);
 void rot_encoder_cleanup(void);

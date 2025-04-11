@@ -16,31 +16,28 @@
 // }
 
 int main(void) {
-  gpio_init();
-  motor_init();
-  rot_encoder_init();
-  rot_encoder_set_min_max(-100, 100);
-  rot_encoder_set_step(10);
-  rot_encoder_set_counter(0);
+    gpio_init();
+    motor_init();
+    rot_encoder_init();
+    rot_encoder_set_min_max(-100, 100);
+    rot_encoder_set_step(10);
+    rot_encoder_set_counter(0);
 
+    while (true) {
+        int val = rot_encoder_get_val();
+        if (val < 100) {
+            val = abs(val);
+            motor_set_speed(val, true);
+        } else {
+            motor_set_speed(val, false);
+        }
 
-  while (true) {
-    int val = rot_encoder_get_val();
-    if (val < 100) { 
-      val = abs(val);
-      motor_set_speed(val, true);
-    } else {
-      motor_set_speed(val, false);
+        printf("Rotary Encoder Value: %d\n", val);
     }
 
-    printf("Rotary Encoder Value: %d\n", val);
+    rot_encoder_cleanup();
+    motor_cleanup();
+    gpio_cleanup();
 
-    
-  }
-
-  rot_encoder_cleanup();
-  motor_cleanup();
-  gpio_cleanup();
-
-  return 0;
+    return 0;
 }

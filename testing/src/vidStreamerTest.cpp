@@ -3,13 +3,10 @@
 #include <string>
 #include <thread>
 
-void create_vid_streamer(std::string addr, std::string filename)
-{
-    VidStreamer streamer(addr, filename);
-}
+void create_vid_streamer(std::string addr, std::string filename) { VidStreamer streamer(addr, filename); }
 
-int main(int argc, char* argv[]){
-    if(argc < 2){
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << "<input_file>" << std::endl;
         return 1;
     }
@@ -29,7 +26,6 @@ int main(int argc, char* argv[]){
 
     web_thread.join();
     lcd_thread.join();
-
 
     return 0;
 }

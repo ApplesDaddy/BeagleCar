@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-#https://docs.beagleboard.org/boards/beagley/ai/demos/beagley-ai-object-detection-tutorial.html
-#https://gist.github.com/fernandoremor/8d9efb81e25360ab38245c8e96d870c8
+# https://docs.beagleboard.org/boards/beagley/ai/demos/beagley-ai-object-detection-tutorial.html
+# https://gist.github.com/fernandoremor/8d9efb81e25360ab38245c8e96d870c8
 
 from v4l2 import *
 import fcntl
@@ -13,24 +13,23 @@ import argparse
 import sys
 import os
 
-video_driver_id = 3  
+video_driver_id = 3
 
-#https://stackoverflow.com/questions/47802480/create-boolean-mask-of-numpy-rgb-array-if-matches-color
+
+# https://stackoverflow.com/questions/47802480/create-boolean-mask-of-numpy-rgb-array-if-matches-color
 def color_change_detected(moving_avg, curr_avg, threshold=20.0):
     dist = np.linalg.norm(curr_avg - moving_avg)
     return dist > threshold
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--resolution',
-        default='640x480',
-        help='Desired webcam resolution')  
+    parser.add_argument("--resolution", default="640x480", help="Desired webcam resolution")
     args = parser.parse_args()
 
-    resW, resH = map(int, args.resolution.split('x'))
+    resW, resH = map(int, args.resolution.split("x"))
 
-    vd = open(f'/dev/video{video_driver_id}', 'rb+', buffering=0)
+    vd = open(f"/dev/video{video_driver_id}", "rb+", buffering=0)
 
     cp = v4l2_capability()
     fcntl.ioctl(vd, VIDIOC_QUERYCAP, cp)
@@ -40,8 +39,8 @@ def main():
     fcntl.ioctl(vd, VIDIOC_G_FMT, fmt)
 
     fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG
-    fmt.fmt.pix.width = resW  
-    fmt.fmt.pix.height = resH  
+    fmt.fmt.pix.width = resW
+    fmt.fmt.pix.height = resH
     fcntl.ioctl(vd, VIDIOC_S_FMT, fmt)
 
     parm = v4l2_streamparm()
@@ -64,12 +63,7 @@ def main():
         buf.index = ind
         fcntl.ioctl(vd, VIDIOC_QUERYBUF, buf)
 
-        mm = mmap.mmap(
-            vd.fileno(),
-            buf.length,
-            mmap.MAP_SHARED,
-            mmap.PROT_READ | mmap.PROT_WRITE,
-            offset=buf.m.offset)
+        mm = mmap.mmap(vd.fileno(), buf.length, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE, offset=buf.m.offset)
         buffers.append(mm)
         fcntl.ioctl(vd, VIDIOC_QBUF, buf)
 
@@ -88,11 +82,11 @@ def main():
         os.makedirs(output_dir)
 
     # timing and moving average variables.
-    stream_start_time = time.time()    # when the stream starts
-    cooldown_end_time = 0              # No cooldown period at first
-    
-    # moving average 
-    moving_sum = None     # numpy array for sum of RGB (first three channels)
+    stream_start_time = time.time()  # when the stream starts
+    cooldown_end_time = 0  # No cooldown period at first
+
+    # moving average
+    moving_sum = None  # numpy array for sum of RGB (first three channels)
     moving_count = 0
     # crash mode variables.
     crash_check_mode = False
@@ -122,7 +116,7 @@ def main():
 
             height = frame.shape[0]
             # get the bottom half of the frame
-            bottom_half = frame[height // 2:, :, :]
+            bottom_half = frame[height // 2 :, :, :]
             # calculate current average color for bottom half (only RGB).
             curr_avg_full = cv2.mean(bottom_half)  # returns (B, G, R, alpha)
             # convert np array
@@ -166,7 +160,7 @@ def main():
                         # check if current frame deviates significantly from the moving average.
                         if color_change_detected(moving_avg, curr_avg, threshold=crash_threshold):
                             crash_check_mode = True
-                            crash_check_counter = 1  # start counting deviating frames 
+                            crash_check_counter = 1  # start counting deviating frames
                     else:
                         # in crash check mode: do not update the moving average.
                         if color_change_detected(moving_avg, curr_avg, threshold=crash_threshold):
@@ -180,12 +174,12 @@ def main():
                             moving_count += 1
                             moving_avg = moving_sum / moving_count
 
-                        #5 is arbitrary threshold 
+                        # 5 is arbitrary threshold
                         if crash_check_counter >= 5:
                             # process crash event.
                             print("CRASH DETECTED!")
                             cv2.imwrite(os.path.join(output_dir, f"crash_frame_{frame_number}.jpg"), frame)
-                            message_sock.sendto(b'CRASH DETECTED!\n', (UDP_IP, MESSAGE_PORT))
+                            message_sock.sendto(b"CRASH DETECTED!\n", (UDP_IP, MESSAGE_PORT))
                             # set a 5 second cooldown.
                             cooldown_end_time = now + 5
                             # reset moving average with current frame.
@@ -196,7 +190,7 @@ def main():
                             crash_check_mode = False
                             crash_check_counter = 0
 
-            encoded_frame = cv2.imencode('.jpg', frame)[1].tobytes()
+            encoded_frame = cv2.imencode(".jpg", frame)[1].tobytes()
             sock.sendto(encoded_frame, (UDP_IP, UDP_PORT))
 
             frame_number += 1
@@ -216,6 +210,7 @@ def main():
         sock.close()
         vd.close()
         print("Streaming stopped.")
+
 
 if __name__ == "__main__":
     main()

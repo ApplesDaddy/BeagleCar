@@ -1,28 +1,24 @@
 #ifndef _VIDSTREAMER_H_
 #define _VIDSTREAMER_H_
 
-
 extern "C" {
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/opt.h>
-    // #include <libavutil/imgutils.h>
-    // #include <libavutil/avutil.h>
-    // #include <libswscale/swscale.h>
-    }
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/opt.h>
+// #include <libavutil/imgutils.h>
+// #include <libavutil/avutil.h>
+// #include <libswscale/swscale.h>
+}
 #include <fstream>
 #include <string>
 
-class VidStreamer
-{
-public:
+class VidStreamer {
+  public:
     VidStreamer(std::string ip_addr, std::string filename); // constructor
 
     ~VidStreamer();
 
-
-
-private:
+  private:
     bool openFile();
     bool initInputContext(const char *filename);
     bool findInputStream();
@@ -62,10 +58,7 @@ private:
 
     AVDictionary *dict = NULL;
 
-
     bool decodeVideo();
-
 };
-
 
 #endif

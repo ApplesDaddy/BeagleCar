@@ -1,6 +1,6 @@
-#https://github.com/wms2537/python-udp-mjpeg-server/blob/main/udp_stream.py
+# https://github.com/wms2537/python-udp-mjpeg-server/blob/main/udp_stream.py
 
-#used in place of vlc, if needed to view stream
+# used in place of vlc, if needed to view stream
 
 import socket
 import cv2
@@ -21,8 +21,8 @@ try:
 
         if img is not None:
             cv2.imshow("MJPEG Stream", img)
-            #https://stackoverflow.com/questions/35372700/whats-0xff-for-in-cv2-waitkey1
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            # https://stackoverflow.com/questions/35372700/whats-0xff-for-in-cv2-waitkey1
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         else:
             print("Error decoding frame")

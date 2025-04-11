@@ -1,9 +1,9 @@
 
 
 class lcdStreamRecv {
-    public:
-        lcdStreamRecv();
-        ~lcdStreamRecv();
+  public:
+    lcdStreamRecv();
+    ~lcdStreamRecv();
 
-    private:
+  private:
 };

@@ -1,7 +1,6 @@
 #ifndef _UDP_CONSTANTS_H_
 #define _UDP_CONSTANTS_H_
 
-
 #define UDP_PORT 12345
 #define WEBSERVER_UDP_PORT "12346"
 #define LCD_UDP_PORT "12347"
@@ -14,14 +13,12 @@
 
 // #define JOYSTICK_ANGLE  // undef to send raw x, y values ([-1.0, 1.0]) instead of angle + radius
 
-#define SEND_INTERVAL_MS 100    // send hardware (joystick) inputs every n ms
-#define LISTEN_TIMEOUT_MS 100   // used to prevent recv_from() from blocking shutdown
+#define SEND_INTERVAL_MS 100  // send hardware (joystick) inputs every n ms
+#define LISTEN_TIMEOUT_MS 100 // used to prevent recv_from() from blocking shutdown
 
 // extern char* RECV_IP;
 
-
-enum UDP_MSG_CODES
-{
+enum UDP_MSG_CODES {
     CODE_STOP = -1,
 
     CODE_JOYSTICK_VAL = 0,
