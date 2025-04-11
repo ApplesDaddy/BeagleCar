@@ -26,6 +26,7 @@ Contents:
 - [LCD config](#lcd-config)
 - [udp program](#udp-program)
 - [Motor and Servo](#motor-and-servo-control)
+- [Testing](#testing)
 
 ### Dependencies
 
@@ -461,3 +462,10 @@ Sender/receiver IP addresses can be changed in `app/include/udp_constants.h`
 - Because the motor and servo are on the same module they must have the same period (71hz). We use the motors hz since the servo accepts a range from 50 to 200.
 - Both require a pwm signal. Currently the motor uses gpiopin 15 which is the right most uart pin when the uart header is on the top left of the board when looked at from above, and the servo expects the pin on the other side, gpiopin 14. The middle pin is ground.
 - The servo + camera draw more power then beagle can provide, so the power line for the servo should be connected to the power line of the ESC for the motor,, and only ground and signnal lines should be drawn to the beagle.
+
+
+## Testing
+The following executables are created for testing purposes, and should be copied automatically to the public folder:
+  - motorTest: Can turn the rotary encoder to change the speed of the motor. 
+  - servoTest: Can turn the rotary encoder to turn the servo and change the direction the car is pointing in. 
+  - webServerTest: Turns on the webServer and makes some example pages viewable. Further details here: [WebServer](#web-server)
