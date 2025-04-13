@@ -93,7 +93,6 @@ static inline void process_cmd(char *cmd, struct sockaddr_in *remote) {
 
         float y_val = atof(param);
 
-        // TODO: do something with this input
         printf("x: %f   y: %f\n", x_val, y_val);
 
         int angle = (y_val + 1) / 2 * 180;
@@ -117,7 +116,6 @@ static inline void process_cmd(char *cmd, struct sockaddr_in *remote) {
 
         int val = atoi(param);
 
-        // TODO: do something with this input
         printf("encoder: %d\n", val);
 
         bool reverse = false;

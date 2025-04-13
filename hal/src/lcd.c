@@ -20,12 +20,14 @@
 static UWORD *s_fb;
 static bool isInitialized = false;
 
+// video variables
 static struct SwsContext *resize;
 static int context_height;
 static AVFrame *queued_frame;
 static AVFrame *buffered_frame;
 static atomic_bool dirty_frame = false;
 
+// thread variables
 static pthread_mutex_t frame_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t frame_cond = PTHREAD_COND_INITIALIZER;
 static bool frame_thread_active = false;
@@ -33,11 +35,17 @@ static atomic_bool stop_thread = false;
 static pthread_t frame_thread;
 
 #define CLIP(x) ((x) > 254 ? 254 : (x) < 0 ? 0 : (x))
+
+// artifact fix variables
 #define FIX_THRESH_PECENT 0.03
 
 static int start_x = LCD_1IN54_WIDTH / 2 - (LCD_1IN54_WIDTH * FIX_THRESH_PECENT);
 static int end_x = LCD_1IN54_WIDTH / 2 + (LCD_1IN54_WIDTH * FIX_THRESH_PECENT);
 
+
+// ==================================== private helper functions ===================================
+// scaling down + converting YCrCb -> RGB causes an artifact down the middle of the LCD.
+// Couldn't resolve it through ffmpeg so we manually scale down this part
 static inline void fix_artifacts(int orig_width, int orig_height, AVFrame *frame) {
     float x_diff = (float)orig_width / (float)LCD_1IN54_WIDTH;
     float y_diff = (float)orig_height / (float)LCD_1IN54_HEIGHT;
@@ -136,6 +144,8 @@ void *frame_thread_func(void *args) {
     return NULL;
 }
 
+
+// ======================================= public functions ========================================
 // source: cmake_lcdstarter from prof Brian Fraser
 void lcd_init() {
     assert(!isInitialized);
@@ -170,8 +180,10 @@ void lcd_video_init(AVCodecContext *context) {
     assert(isInitialized);
 
     // setup to resize image to fit lcd screen
-    resize = sws_getContext(context->width, context->height, context->pix_fmt, LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT,
-                            context->pix_fmt, SWS_SINC | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND, NULL, NULL, NULL);
+    resize = sws_getContext(context->width, context->height, context->pix_fmt,
+                            LCD_1IN54_WIDTH, LCD_1IN54_HEIGHT,
+                            context->pix_fmt, SWS_SINC | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND,
+                            NULL, NULL, NULL);
 
     // second frame for scaled image
     queued_frame = av_frame_alloc();
