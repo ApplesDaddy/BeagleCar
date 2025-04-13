@@ -1,14 +1,20 @@
 # BeagleCar
 
-Term project for CMPT433
+Term project for CMPT433.
+
+A RC car with a dashcam that records + sends video data to a remote web server (running on a second BYAI, called the controller). The controller uses a joystick and rotary encoder to wirelessly control the car's direction and speed. Video data from the car is displayed on the controller's LCD and on a web browser. Wi-fi and UDP are used for wireless communication.
 
 Equipment:
 
 - BeagleBone Y-AI
 - Logitech C270 720p webcam
+- analog joystick
+- rotary encoder
+- 240×240, 1.54" LCD Display
 
 Contents:
 
+- [Build and Run](#build-and-run)
 - [Dependencies](#dependencies)
   - [webServer](#webserver)
   - [webcam python](#webcam-python)
@@ -27,38 +33,71 @@ Contents:
 - [udp program](#udp-program)
 - [Motor and Servo](#motor-and-servo-control)
 - [Testing](#testing)
+- [Systemd](#systemd)
+
+### Build and Run
+#### Setup:
+Controller:
+- [webServer](#webserver)
+- [udp terminal send testing](#udp-terminal-send-testing)
+- [AP](#ap)
+- [Optional] [lcd/video streaming](#lcdvideo-streaming) and [LCD config](#lcd-config)
+
+Car:
+- [webcam python](#webcam-python)
+- [udp terminal send testing](#udp-terminal-send-testing)
+- [PWM for Motor, Servo, Rotary Encoder, Joystick](#pwm)
+- [Systemd](#systemd)
+
+#### Build:
+```sh
+(controller)$ cmake --build build --target controller
+
+(car)$ cmake --build build --target udp
+```
+
+#### Run:
+Controller:
+```sh
+# look up the car's IP
+$ cat /var/lib/dhcp/dhcpd.leases
+$ ./controller <car-ip>
+```
+Car:
+
+Connect to a power supply; the car should automatically run neccessary scripts and connect to the AP (using systemd).
 
 ### Dependencies
 
 #### webServer
 
-    - g++ for compiling C++ and cross compiling
-    ```bash
+g++ for compiling C++ and cross compiling
+
     (host)$ sudo apt install g++
     (host)$ sudo apt install g++-aarch64-linux-gnu
-    ```
-    - ffmpeg for video segmenting
-    ```bash
+
+ffmpeg for video segmenting
+
     (host)$ sudo apt install ffmpeg
     (byai)$ sudo apt install ffmpeg
-    ```
 
 #### webcam python
 
-    1) create a virtual environment. Check the venv's pip is being used with which pip. If the wrong one is used,         try python3 -m pip install To create venv, follow steps below or follow steps 1,2,3 from ->         https://docs.beagleboard.org/boards/beagley/ai/demos/beagley-ai-object-detection-tutorial.html
+1) create a virtual environment by following the steps below or steps 1,2,3 [here](https://docs.beagleboard.org/boards/beagley/ai/demos/beagley-ai-object-detection-tutorial.html)
     ```bash
     (target)$ sudo apt install python3-venv
     (target)$ python3 -m venv .venv
     (target)$ source .venv/bin/activate
     ```
-    2) install:
+2) install dependencies:
     ```bash
     (target)$ pip install v4l2
     (target)$ pip install opencv-python
     (target)$ pip install numpy==1.26.4
     ```
 
-troubleshooting
+Troubleshooting
+
 `error: externally-managed-environment` message?
 
 Create a virtual environment. Check the venv's pip is being used with `which pip`. If the wrong one is used, try `python3 -m pip install`
@@ -67,34 +106,27 @@ Create a virtual environment. Check the venv's pip is being used with `which pip
 
 `TypeError: unsupported operand type(s) for +: 'range' and 'list'` from importing v4l2?
 
-manually fix the lines in the file (see error message) by wrapping `range()` in `list()` (example: `list(range())`)
+manually fix the lines in the library file (see error message) by wrapping `range()` in `list()` (example: `list(range())`)
 
 #### webcam c
 
-    ```bash
     (target)$ sudo apt-get install libv4l-dev
     (target)$ sudo apt-get install libopencv-dev
     (target)$ sudo apt-get install ffmpeg
-    ```
 
 #### lcd/video streaming
 
-    ```sh
-        (host) sudo apt-get install libavcodec-dev
-        (host) sudo apt-get install libavformat-dev
-        (host) sudo apt-get install libswscale-dev
-        (host) sudo apt-get install libavutil-dev
-    ```
-    ```sh
-        (target)$ sudo apt-get install ffmpeg
-        (target)$ sudo apt install liblgpio-dev
-    ```
+    (host) sudo apt-get install libavcodec-dev
+    (host) sudo apt-get install libavformat-dev
+    (host) sudo apt-get install libswscale-dev
+    (host) sudo apt-get install libavutil-dev
+
+    (target)$ sudo apt-get install ffmpeg
+    (target)$ sudo apt install liblgpio-dev
 
 #### udp terminal send testing
 
-    ```sh
-        (host) sudo apt-get install libncurses5-dev
-    ```
+    (host) sudo apt-get install libncurses5-dev
 
 #### vidStreamer
   - Install ffmpeg on BeagleY-AI
@@ -151,7 +183,7 @@ manually fix the lines in the file (see error message) by wrapping `range()` in 
 We need to activate the PWM pins on the boards. For controlling the car we need GPIO 14 and 15 to control the motor and servo, and for the controller board we need GPIO 5, 16, and 17 for joystick push and the rotary encoder. **pin 5 and 15 are on the same line** so only activate the pins that are required on each board.
 
 ## Wi-Fi setup
-There are convenience scripts in wifi_config_files.
+There are convenience scripts and examples config files in [wifi_config_files/](wifi_config_files/).
 ### Client
 Method 3 was the method that ended up being most reliable and used.
 
@@ -212,7 +244,7 @@ If using a bash script like in systemd then make sure that the psk file is set i
 uncomment and set in `/etc/default/hostapd`:
 
 ```
-DAEMON_CONF="/etc/hostapd/  .conf"
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
 ```
 
 set `/etc/hostapd/hostapd.conf` to (update ssid and wpa_passphrase):
@@ -248,6 +280,13 @@ To increase lease time (seconds), adjust `default-lease-time` and `max-lease-tim
 
 To increase number of clients that can connect at once, change `range`
 
+Uncomment and set in `/etc/default/isc-dhcp-server`:
+
+```sh
+DHCPDv4_CONF=/etc/dhcp/dhcpd.conf
+INTERFACESv4="wlan0"
+```
+
 Everytime on re/boot:
 
 ```sh
@@ -277,6 +316,7 @@ DHCP:
 - `service isc-dhcp-server status` to see dhcp status
 - `service isc-dhcp-server stop` to stop dhcp
 - `dhcpd -t -cf /etc/dhcp/dhcpd.conf` to check dhcp config file has no issues
+- [ISC DHCP server setup tutorial](https://www.cyberciti.biz/faq/howto-ubuntu-debian-squeeze-dhcp-server-setup-tutorial/)
 
 hostapd/AP config:
 
@@ -299,6 +339,7 @@ sudo /etc/init.d/hostapd stop
 sudo nmcli radio wifi off
 sudo nmcli radio wifi on
 ```
+- [AP config with hostapd tutorial](https://www.cyberciti.biz/faq/debian-ubuntu-linux-setting-wireless-access-point/)
 
 General Networking:
 
@@ -311,14 +352,14 @@ General Networking:
 
 1.  on target: `python3 crash-detection2.py`
 
-         (crash-detection2 logic: if the average colour of the bottom half of frame(n-1)
-                              is different from frame(n)'s, detect crash. 5 sec
-                              cooldown. colour deviation threshold can be adjusted)
+    (crash-detection2 logic: if the average colour of the bottom half of frame(n-1)
+                        is different from frame(n)'s, detect crash. 5 sec
+                        cooldown. colour deviation threshold can be adjusted)
 
     OR
 
 2.  on target: `python3 crash-detection3.py`
-    (crash-detection3 logic: populate moving average with the average colour of the bottom
+    </br>(crash-detection3 logic: populate moving average with the average colour of the bottom
     half of frames for 5 seconds. then, if 5 consecutive frames deviate from the moving average, detect crash. 5 sec cooldown. colour deviation threshold can be adjusted)
 3.  to view stream on host: `python3 receiveUDP.py`
 
@@ -405,6 +446,9 @@ To manually run CMake from the command line use:
 
   # Build (compile & link) the project
   cmake --build build
+
+  # to avoid building everything, you can specify a target
+  cmake --build build --target target_name
 ```
 
 ## Running on Target
@@ -412,8 +456,10 @@ To manually run CMake from the command line use:
 ### LCD config:
 
 - Load the SPI Overlay on the board (just do once)
+
   a. Edit config file:
   `(byai)$ sudo nano /boot/firmware/extlinux/extlinux.conf`
+
   b. Edit the last section to make it say:
   ```
    label microSD (default)
@@ -425,10 +471,13 @@ To manually run CMake from the command line use:
        initrd /initrd.img
   ```
   (If you are also enabling PWM, make the `fdtoverlays` line be a space-separated list of .dtbo files.)
+
   c. Reboot.
 - At each boot you'll need to either:
+
   a. Change the SPI to be usable by anyone:
   `sudo chmod a+rw /dev/spidev0.*`
+
   b. Run the program with root access.
 
 - [OPTIONAL] The LCD is limited to 1fps by default; increase the frame rate by following the steps from [this guide](https://github.com/wcs3/BYAI-mcu_spi0/tree/main)
@@ -472,8 +521,8 @@ Sender/receiver IP addresses can be changed in `app/include/udp_constants.h`
 
 ## Testing
 The following executables are created for testing purposes, and should be copied automatically to the public folder:
-  - motorTest: Can turn the rotary encoder to change the speed of the motor. 
-  - servoTest: Can turn the rotary encoder to turn the servo and change the direction the car is pointing in. 
+  - motorTest: Can turn the rotary encoder to change the speed of the motor.
+  - servoTest: Can turn the rotary encoder to turn the servo and change the direction the car is pointing in.
   - webServerTest: Turns on the webServer and makes some example pages viewable. Further details here: [WebServer](#web-server)
 
 ## Systemd
